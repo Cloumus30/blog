@@ -1,6 +1,17 @@
 import { Article, Category, Tag } from './types';
 
 const STRAPI_URL = process.env.STRAPI_INTERNAL_URL || process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://127.0.0.1:1337';
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
+
+function getHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (STRAPI_API_TOKEN) {
+    headers['Authorization'] = `Bearer ${STRAPI_API_TOKEN}`;
+  }
+  return headers;
+}
 
 // Contoh data artikel bawaan (Demo fallback) untuk pengujian langsung
 export const DEMO_ARTICLES: Article[] = [
@@ -212,6 +223,7 @@ bun run dev`
 export async function getArticles(): Promise<Article[]> {
   try {
     const res = await fetch(`${STRAPI_URL}/api/articles?populate=*&filters[status][$eq]=published&sort=publishedAt:desc`, {
+      headers: getHeaders(),
       next: { revalidate: 60 } // Next.js ISR
     });
     if (!res.ok) throw new Error('Failed to fetch articles from Strapi');
