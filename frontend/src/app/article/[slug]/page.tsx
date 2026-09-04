@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Calendar, Tag as TagIcon, Share2 } from 'lucide-react
 import { getArticleBySlug, getArticles } from '@/lib/strapi';
 import RichContentRenderer from '@/components/RichContentRenderer';
 import TableOfContents from '@/components/TableOfContents';
+import VideoEmbed from '@/components/VideoEmbed';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -39,14 +40,23 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Ekstraksi item heading untuk Auto Table of Contents
-  const tocItems = article.content
-    .filter(b => b.type === 'heading' && b.text)
-    .map(b => ({
-      id: (b.text || '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
-      text: b.text || '',
-      level: b.level || 2,
-    }));
+  // Ekstraksi item heading untuk Auto Table of Contents (mendukung format Strapi Blocks & custom demo)
+  const tocItems = (Array.isArray(article.content) ? article.content : [])
+    .filter((b: any) => b.type === 'heading')
+    .map((b: any) => {
+      let text = '';
+      if (b.text) {
+        text = b.text;
+      } else if (Array.isArray(b.children)) {
+        text = b.children.map((c: any) => c.text || '').join('');
+      }
+      return {
+        id: text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
+        text,
+        level: b.level || 2,
+      };
+    })
+    .filter((item: any) => item.text.length > 0);
 
   const formattedDate = new Date(article.publishedAt).toLocaleDateString('id-ID', {
     day: 'numeric',
@@ -147,6 +157,11 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Main Article Content */}
         <div className="lg:col-span-8">
+          {article.videoUrl && (
+            <div className="mb-8">
+              <VideoEmbed url={article.videoUrl} caption="Video Terkait Artikel" />
+            </div>
+          )}
           <RichContentRenderer blocks={article.content} />
 
           {/* Tags Section */}

@@ -48,7 +48,8 @@ export interface Article {
   title: string;
   slug: string;
   excerpt: string;
-  content: RichBlock[];
+  content: any;
+  videoUrl?: string;
   coverImageUrl: string;
   readingTime: number; // Dalam menit
   publishedAt: string;
