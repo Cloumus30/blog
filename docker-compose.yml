@@ -52,6 +52,7 @@ services:
       - strapi_uploads:/app/public/uploads
     networks:
       - cms_net
+      - cloudflare-net
 
   # 3. Next.js Frontend (Blog Publik)
   frontend:
@@ -63,7 +64,7 @@ services:
     container_name: cms_frontend
     restart: unless-stopped
     ports:
-      # Di-bind ke localhost untuk akses via Cloudflare Tunnel
+      # Di-bind ke localhost untuk akses via Cloudflare Tunnel atau debugging host
       - "127.0.0.1:3000:3000"
     environment:
       PORT: 3000
@@ -73,6 +74,7 @@ services:
       STRAPI_API_TOKEN: ${STRAPI_API_TOKEN:-}
     networks:
       - cms_net
+      - cloudflare-net
 
 volumes:
   postgres_data:
@@ -83,3 +85,5 @@ volumes:
 networks:
   cms_net:
     driver: bridge
+  cloudflare-net:
+    external: true
