@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # 1. Database PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: cms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-strapi}
+      POSTGRES_USER: ${POSTGRES_USER:-strapi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strapisecret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-strapi} -d ${POSTGRES_DB:-strapi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cms_net
+
+  # 2. Strapi CMS Backend
+  strapi:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cms_strapi
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # Di-bind ke localhost agar Cloudflare Tunnel di host/container dapat mengaksesnya
+      - "127.0.0.1:1337:1337"
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-strapi}
+      DATABASE_USERNAME: ${POSTGRES_USER:-strapi}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-strapisecret}
+      HOST: 0.0.0.0
+      PORT: 1337
+      APP_KEYS: ${APP_KEYS:-key1,key2}
+      API_TOKEN_SALT: ${API_TOKEN_SALT:-apisalt}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-adminjwtsecret}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT:-transfersalt}
+      JWT_SECRET: ${JWT_SECRET:-jwtsecret}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-encryptionkey}
+    volumes:
+      - strapi_uploads:/app/public/uploads
+    networks:
+      - cms_net
+
+  # 3. Next.js Frontend (Blog Publik)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cms_frontend
+    restart: unless-stopped
+    ports:
+      # Di-bind ke localhost untuk akses via Cloudflare Tunnel
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      NEXT_PUBLIC_STRAPI_API_URL: ${NEXT_PUBLIC_STRAPI_API_URL:-http://127.0.0.1:1337}
+      STRAPI_INTERNAL_URL: http://strapi:1337
+    networks:
+      - cms_net
+
+volumes:
+  postgres_data:
+    driver: local
+  strapi_uploads:
+    driver: local
+
+networks:
+  cms_net:
+    driver: bridge
