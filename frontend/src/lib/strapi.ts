@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { Article, Category, Tag } from './types';
 
 const STRAPI_URL = process.env.STRAPI_INTERNAL_URL || process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://127.0.0.1:1337';
@@ -226,11 +227,12 @@ function formatCoverUrl(url?: string): string {
   return `${STRAPI_URL}${url}`;
 }
 
-export async function getArticles(): Promise<Article[]> {
+export const getArticles = cache(async function getArticles(): Promise<Article[]> {
   try {
     const res = await fetch(`${STRAPI_URL}/api/articles?populate=*&sort=publishedAt:desc`, {
       headers: getHeaders(),
       next: { revalidate: 1 }, // Revalidasi cepat 1 detik agar konten baru langsung muncul
+      signal: AbortSignal.timeout(2000), // Timeout 2s agar tidak hanging saat build offline
     });
     if (!res.ok) {
       console.warn(`Strapi fetch returned status ${res.status}`);
@@ -272,7 +274,7 @@ export async function getArticles(): Promise<Article[]> {
     // Fallback ke data demo jika server Strapi offline
     return DEMO_ARTICLES;
   }
-}
+});
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   const articles = await getArticles();
