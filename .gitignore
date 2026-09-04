@@ -39,5 +39,5 @@ Thumbs.db
 
 # Strapi
 .cache/
-public/uploads/*
-!public/uploads/.gitkeep
+**/public/uploads/*
+!**/public/uploads/.gitkeep
