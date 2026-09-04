@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
-import { BlocksRenderer, type BlocksContent } from '@strapi/blocks-react-renderer';
+import { BlocksRenderer } from '@qkix/better-blocks-react-renderer';
 import CodeBlock from './CodeBlock';
 import CalloutBox from './CalloutBox';
 import VideoEmbed from './VideoEmbed';
@@ -22,29 +23,39 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
       .replace(/\s+/g, '-');
   };
 
-  // Cek apakah data bertipe Strapi 5 native Blocks (memiliki elemen dengan properti 'children')
-  const isStrapiBlocks = Array.isArray(blocks) && blocks.length > 0 && 'children' in blocks[0];
+  // Cek apakah data bertipe Strapi 5 native Blocks atau Better Blocks
+  const isBlocksFormat =
+    Array.isArray(blocks) &&
+    blocks.length > 0 &&
+    'type' in blocks[0] &&
+    ('children' in blocks[0] ||
+      blocks[0].type === 'table' ||
+      blocks[0].type === 'embed' ||
+      blocks[0].type === 'media-embed' ||
+      blocks[0].type === 'button');
 
-  if (isStrapiBlocks) {
+  if (isBlocksFormat) {
     return (
       <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed">
         <BlocksRenderer
-          content={blocks as BlocksContent}
+          content={blocks}
+          codeCopyButton={true}
           blocks={{
-            paragraph: ({ children }) => (
-              <p className="my-4 leading-relaxed text-base text-slate-700 dark:text-slate-300">
+            paragraph: ({ children, style }) => (
+              <p style={style} className="my-4 leading-relaxed text-base text-slate-700 dark:text-slate-300">
                 {children}
               </p>
             ),
-            heading: ({ children, level }) => {
+            heading: ({ children, level, style }) => {
               const textContent = Array.isArray(children)
-                ? children.map(c => (typeof c === 'string' ? c : (c as any)?.props?.text || '')).join('')
+                ? children.map(c => (typeof c === 'string' ? c : (c as any)?.props?.children || '')).join('')
                 : String(children || '');
               const headingId = slugify(textContent || 'section');
               if (level === 3) {
                 return (
                   <h3
                     id={headingId}
+                    style={style}
                     className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-8 mb-3 scroll-mt-24"
                   >
                     {children}
@@ -54,24 +65,39 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
               return (
                 <h2
                   id={headingId}
+                  style={style}
                   className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-10 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
                 >
                   {children}
                 </h2>
               );
             },
-            code: ({ children }) => {
-              const codeString = Array.isArray(children)
-                ? children.map(c => (typeof c === 'string' ? c : (c as any)?.props?.text || '')).join('')
-                : String(children || '');
-              return <CodeBlock code={codeString} language="code" />;
+            code: ({ plainText, language }) => {
+              return <CodeBlock code={plainText} language={language || 'text'} />;
             },
-            quote: ({ children }) => (
-              <blockquote className="my-6 border-l-4 border-blue-500 pl-4 italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 py-2 rounded-r-lg">
+            callout: ({ variant, title, children }) => {
+              const typeMap: Record<string, 'info' | 'warning' | 'danger'> = {
+                note: 'info',
+                tip: 'info',
+                important: 'warning',
+                warning: 'warning',
+                caution: 'danger',
+              };
+              return (
+                <CalloutBox type={typeMap[variant] || 'info'} title={title}>
+                  {children}
+                </CalloutBox>
+              );
+            },
+            quote: ({ children, style }) => (
+              <blockquote
+                style={style}
+                className="my-6 border-l-4 border-blue-500 pl-4 italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 py-2 rounded-r-lg"
+              >
                 {children}
               </blockquote>
             ),
-            image: ({ image }) => {
+            image: ({ image, caption }) => {
               const src = image.url.startsWith('http')
                 ? image.url
                 : `http://localhost:1337${image.url}`;
@@ -86,30 +112,54 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
                       sizes="(max-width: 768px) 100vw, 800px"
                     />
                   </div>
-                  {image.caption && (
+                  {caption && (
                     <figcaption className="mt-2 text-center text-xs text-slate-500 italic">
-                      {image.caption}
+                      {caption}
                     </figcaption>
                   )}
                 </figure>
               );
             },
-            link: ({ children, url }) => {
-              // Jika link merupakan video YouTube, langsung render sebagai video player!
+            link: ({ children, url, target, rel }) => {
               if (url && (url.includes('youtube.com') || url.includes('youtu.be'))) {
                 return <VideoEmbed url={url} />;
               }
               return (
                 <a
                   href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target={target || '_blank'}
+                  rel={rel || 'noopener noreferrer'}
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   {children}
                 </a>
               );
-            }
+            },
+            table: ({ children }) => (
+              <div className="my-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <table className="w-full text-left border-collapse text-sm">
+                  {children}
+                </table>
+              </div>
+            ),
+            'table-row': ({ children }) => (
+              <tr className="border-b border-slate-200/80 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+                {children}
+              </tr>
+            ),
+            'table-cell': ({ children, style }) => (
+              <td style={style} className="p-3 text-slate-700 dark:text-slate-300">
+                {children}
+              </td>
+            ),
+            'table-header-cell': ({ children, style }) => (
+              <th
+                style={style}
+                className="p-3 font-semibold bg-slate-100/70 dark:bg-slate-800/70 text-slate-900 dark:text-slate-100"
+              >
+                {children}
+              </th>
+            ),
           }}
         />
       </div>

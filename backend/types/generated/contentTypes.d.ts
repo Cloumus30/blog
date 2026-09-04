@@ -456,6 +456,8 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   };
   attributes: {
     author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
+    better_content: Schema.Attribute.JSON &
+      Schema.Attribute.CustomField<'plugin::better-blocks.better-blocks'>;
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     content: Schema.Attribute.Blocks;
     cover_image: Schema.Attribute.Media<'images'>;

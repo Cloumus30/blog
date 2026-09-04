@@ -246,7 +246,9 @@ export async function getArticles(): Promise<Article[]> {
       title: item.title,
       slug: item.slug,
       excerpt: item.excerpt || '',
-      content: item.content || [],
+      content: (item.better_content && (Array.isArray(item.better_content) ? item.better_content.length > 0 : true))
+        ? item.better_content
+        : (item.content || []),
       videoUrl: item.video_url || undefined,
       coverImageUrl: formatCoverUrl(item.cover_image?.url),
       readingTime: item.reading_time || 3,
