@@ -25,10 +25,7 @@
       "type": "text"
     },
     "content": {
-      "type": "blocks"
-    },
-    "better_content": {
-      "type": "customField",
+         "type": "customField",
       "customField": "plugin::better-blocks.better-blocks"
     },
     "video_url": {

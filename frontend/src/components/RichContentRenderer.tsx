@@ -98,9 +98,10 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
               </blockquote>
             ),
             image: ({ image, caption }) => {
+              const strapiBase = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
               const src = image.url.startsWith('http')
                 ? image.url
-                : `http://localhost:1337${image.url}`;
+                : `${strapiBase}${image.url}`;
               return (
                 <figure className="my-8">
                   <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shadow-md">

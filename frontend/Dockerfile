@@ -9,6 +9,10 @@ RUN bun install
 
 COPY . .
 ENV NODE_ENV=production
+
+ARG NEXT_PUBLIC_STRAPI_API_URL
+ENV NEXT_PUBLIC_STRAPI_API_URL=$NEXT_PUBLIC_STRAPI_API_URL
+
 RUN bun run build
 
 # Stage 2: Runner
