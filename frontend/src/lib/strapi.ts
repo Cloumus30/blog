@@ -220,13 +220,22 @@ bun run dev`
   }
 ];
 
+function formatCoverUrl(url?: string): string {
+  if (!url) return DEMO_ARTICLES[0].coverImageUrl;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${STRAPI_URL}${url}`;
+}
+
 export async function getArticles(): Promise<Article[]> {
   try {
-    const res = await fetch(`${STRAPI_URL}/api/articles?populate=*&filters[status][$eq]=published&sort=publishedAt:desc`, {
+    const res = await fetch(`${STRAPI_URL}/api/articles?populate=*&sort=publishedAt:desc`, {
       headers: getHeaders(),
-      next: { revalidate: 60 } // Next.js ISR
+      next: { revalidate: 1 }, // Revalidasi cepat 1 detik agar konten baru langsung muncul
     });
-    if (!res.ok) throw new Error('Failed to fetch articles from Strapi');
+    if (!res.ok) {
+      console.warn(`Strapi fetch returned status ${res.status}`);
+      return DEMO_ARTICLES;
+    }
     const data = await res.json();
     if (!data.data || data.data.length === 0) {
       return DEMO_ARTICLES;
@@ -236,9 +245,9 @@ export async function getArticles(): Promise<Article[]> {
       id: item.id,
       title: item.title,
       slug: item.slug,
-      excerpt: item.excerpt,
+      excerpt: item.excerpt || '',
       content: item.content || [],
-      coverImageUrl: item.cover_image?.url ? `${STRAPI_URL}${item.cover_image.url}` : DEMO_ARTICLES[0].coverImageUrl,
+      coverImageUrl: formatCoverUrl(item.cover_image?.url),
       readingTime: item.reading_time || 3,
       publishedAt: item.publishedAt || item.createdAt,
       category: item.category ? {
@@ -252,11 +261,12 @@ export async function getArticles(): Promise<Article[]> {
         id: item.author.id,
         name: item.author.name,
         bio: item.author.bio,
-        avatarUrl: item.author.avatar?.url ? `${STRAPI_URL}${item.author.avatar.url}` : undefined
+        avatarUrl: item.author.avatar?.url ? formatCoverUrl(item.author.avatar.url) : undefined
       } : undefined
     }));
   } catch (err) {
-    // Fallback ke data demo jika server Strapi offline / belum ada artikel
+    console.error('Error fetching articles from Strapi:', err);
+    // Fallback ke data demo jika server Strapi offline
     return DEMO_ARTICLES;
   }
 }
