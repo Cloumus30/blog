@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git
 
 COPY package.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 ENV NODE_ENV=production
