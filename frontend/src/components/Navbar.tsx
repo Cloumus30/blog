@@ -6,6 +6,7 @@ import { Moon, Sun, Terminal, Rss, ExternalLink } from 'lucide-react';
 
 export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
+  const cmsStrApiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL;
 
   useEffect(() => {
     // Check saved theme or system preference
@@ -77,7 +78,7 @@ export default function Navbar() {
 
           {/* CMS Admin Link */}
           <a
-            href="http://127.0.0.1:1337/admin"
+            href={cmsStrApiUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border border-slate-200 dark:border-slate-800"
