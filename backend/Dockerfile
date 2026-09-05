@@ -1,18 +1,18 @@
-# Multi-stage Dockerfile for Strapi CMS with Bun
+# Multi-stage Dockerfile for Strapi CMS
 # Stage 1: Build & Dependencies
-FROM oven/bun:1-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies if needed
+# Install build dependencies for native modules
 RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git
 
-COPY package.json bun.lock* ./
-RUN bun install
+COPY package.json ./
+RUN npm install
 
 COPY . .
 ENV NODE_ENV=production
-RUN bun run build
+RUN npm run build
 
 # Stage 2: Production Runner
 FROM node:20-alpine AS runner
