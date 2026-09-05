@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for Strapi CMS with pnpm
 # Stage 1: Build & Dependencies
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev l
 # Enable corepack and prepare pnpm
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@12 --activate
 
 # Copy package manifests
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* ./
@@ -22,10 +22,11 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 # Copy application source code and build
 COPY . .
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm run build
 
 # Stage 2: Production Runner
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 WORKDIR /app
 
