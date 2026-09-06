@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Logikanya.tech — Frontend Web Application
 
-## Getting Started
+Aplikasi web publik dan antarmuka pembaca untuk blog **Logikanya.tech**, dibangun menggunakan **Next.js 16 (App Router, Turbopack, React 19)** dan dikelola secara eksklusif menggunakan runtime & package manager **Bun**.
 
-First, run the development server:
+---
+
+## ⚡ Fitur Utama Frontend
+
+- **Arsitektur Next.js 16**: Server Components (RSC), App Router, Turbopack, dan Standalone Output untuk deployment container Docker efisien.
+- **Strategi Caching & Sinkronisasi Data (On-Demand ISR)**:
+  - Cache fetching Strapi v5 berdurasi 3600 detik dengan tag `articles`.
+  - Endpoint Webhook [`/api/revalidate`](./src/app/api/revalidate/route.ts) untuk purges cache instan saat ada update dari Strapi.
+- **Live Draft Mode**:
+  - Endpoint [`/api/preview`](./src/app/api/preview/route.ts) dan [`/api/exit-preview`](./src/app/api/exit-preview/route.ts).
+  - Floating status banner [`DraftModeBanner`](./src/components/DraftModeBanner.tsx).
+- **SEO & Search Visibility**:
+  - [`/sitemap.xml`](./src/app/sitemap.ts): Dynamic Sitemap mencakup Beranda, Artikel, Kategori, Tag, dan Penulis.
+  - [`/feed.xml`](./src/app/feed.xml/route.ts): RSS 2.0 XML Feed publik.
+  - [`/article/[slug]/opengraph-image`](./src/app/article/[slug]/opengraph-image.tsx): Dynamic OpenGraph Image (1200x630) menggunakan `ImageResponse`.
+  - [`ArticleJsonLd`](./src/components/ArticleJsonLd.tsx): Structured data Schema.org (`BlogPosting`, `BreadcrumbList`, `Person`).
+- **Desain & Pembaca Modern**:
+  - Tailwind CSS v4 dengan dukungan Dark & Light Mode penuh.
+  - Palet Brand: Canvas `#F8F9FA`, Primary `#2C303A`, Accent `#D95D39`.
+  - Auto Table of Contents (TOC) sticky di sidebar.
+  - Reading Progress Bar atas.
+  - Rute arsip dinamis: `/category/[slug]`, `/author/[slug]`, dan `/tag/[slug]`.
+  - Navigasi artikel sebelumnya/selanjutnya (`AdjacentArticlesNav`).
+- **Keamanan**:
+  - Standard HTTP Security Headers di `next.config.ts` (`X-Frame-Options: SAMEORIGIN`, `nosniff`, dll).
+
+---
+
+## 🛠️ Package Manager & Eksekusi
+
+> [!IMPORTANT]
+> Proyek frontend ini **wajib** menggunakan **`bun`**. Jangan gunakan `npm`, `yarn`, atau `pnpm` di direktori ini.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Instalasi dependensi
+bun install
+
+# Menjalankan development server (port 3000)
+bun run dev
+
+# Memeriksa linter code style
+bun run lint
+
+# Kompilasi build produksi
+bun run build
+
+# Menjalankan build produksi
+bun run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔐 Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Konfigurasikan pada berkas `.env.local` (atau environment server):
 
-## Learn More
+```env
+# URL publik Strapi (diakses browser klien jika diperlukan)
+NEXT_PUBLIC_STRAPI_API_URL=http://localhost:1337
 
-To learn more about Next.js, take a look at the following resources:
+# URL internal Strapi (digunakan server Next.js untuk fetch cepat di network internal Docker)
+STRAPI_INTERNAL_URL=http://localhost:1337
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# API Token Strapi (Settings -> API Tokens -> Full Access / Read-Only)
+STRAPI_API_TOKEN=your_strapi_api_token_here
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Domain kanonikal situs untuk SEO sitemap & RSS
+NEXT_PUBLIC_SITE_URL=https://blog.cloudias.my.id
 
-## Deploy on Vercel
+# Secret token untuk memvalidasi webhook revalidasi dari Strapi
+REVALIDATION_SECRET=logikanya-secret-token-2026
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Secret token untuk mengakses live preview draf
+PREVIEW_SECRET=logikanya-secret-token-2026
+```

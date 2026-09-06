@@ -1,33 +1,55 @@
-﻿# TechHobby CMS & Blog Platform
+# Logikanya.tech — Headless CMS & Blog Platform
 
-Platform publikasi konten dan blog modern untuk artikel teknologi dan hobi, dibangun dengan arsitektur **Headless CMS** performa tinggi menggunakan **Strapi v5**, **Next.js 16 (App Router)**, **Bun**, **PostgreSQL**, dan **Cloudflare Tunnel**.
+Platform publikasi konten dan blog modern untuk artikel wawasan logika, kode, dan teknologi, dibangun dengan arsitektur **Headless CMS** performa tinggi menggunakan **Strapi v5 (pnpm)**, **Next.js 16 (Bun)**, **PostgreSQL**, dan **Cloudflare Tunnel**.
 
 ---
 
-## Arsitektur & Teknologi
+## 🎨 Identitas Brand & Desain (Brand Guide)
 
-* **Frontend**: Next.js 16 (App Router, Turbopack, Tailwind CSS 4, Standalone Mode, Incremental Static Regeneration / ISR).
-* **Backend**: Strapi CMS v5 (TypeScript, REST API, Media Upload).
-* **Plugin Editor**: `@qkix/strapi-plugin-better-blocks` & `@qkix/better-blocks-react-renderer` (Warna teks, highlight, tabel dinamis, embed video YouTube/Vimeo, to-do list, rumus KaTeX, diagram Mermaid, callouts).
-* **Database**: PostgreSQL 16 (Alpine).
-* **Runtime & Package Manager**: **Bun 1.3.x**.
+* **Nama Brand**: **Logikanya.tech**
+* **Palet Warna**:
+  - **Canvas Background**: `#F8F9FA` (Light mode) / `#2C303A` (Dark mode)
+  - **Primary Dark**: `#2C303A`
+  - **Brand Accent**: `#D95D39` (*Copper Orange* — digunakan pada aksen tombol, badge kategori, dan status preview)
+* **Tipografi**: Geist Sans & Geist Mono
+* **Tema**: Dark / Light Mode otomatis tersinkronisasi dengan preferensi sistem dan tombol toggle.
+
+---
+
+## ⚡ Arsitektur & Teknologi
+
+* **Frontend**: Next.js 16 (App Router, Turbopack, Tailwind CSS v4, Standalone Mode, On-Demand ISR).
+* **Backend**: Strapi CMS v5 (TypeScript, REST API, Media Upload, In-Memory Rate Limiter).
+* **Plugin Strapi**:
+  - `@strapi/plugin-color-picker`: Custom field pemilih warna hex visual untuk kategori artikel.
+  - `@qkix/strapi-plugin-better-blocks` & `@qkix/better-blocks-react-renderer`: Blok konten rich text (tabel, sintaks koding, rumus KaTeX, diagram Mermaid, callout info/warning, video YouTube/Vimeo).
+* **Basis Data**: PostgreSQL 16 (Alpine).
+* **Runtime & Package Manager**:
+  - **Backend (`backend/`)**: Wajib menggunakan **`pnpm`**.
+  - **Frontend (`frontend/`)**: Wajib menggunakan **`bun`**.
 * **Containerization**: Multi-container Docker Compose.
-* **Network & Ingress**: Terhubung langsung ke network `cloudflare-net` bersama container **Cloudflare Tunnel (`cloudflared`)** untuk ekspos publik aman (*Zero Inbound Open Ports* & auto SSL).
+* **Network & Ingress**: Terhubung ke network `cloudflare-net` bersama container **Cloudflare Tunnel (`cloudflared`)** untuk ekspos publik aman (*Zero Inbound Open Ports* & auto SSL).
 
 ---
 
-## Struktur Direktori
+## 📁 Struktur Direktori Proyek
 
 ```text
-├── backend/                  # Source code Strapi v5 (CMS Backend)
+├── backend/                  # Source code Strapi v5 (CMS Backend - Package Manager: pnpm)
 │   ├── config/               # Konfigurasi plugins, middlewares, dan database
 │   ├── src/api/              # Content-types (articles, categories, tags, authors)
-│   ├── Dockerfile            # Multi-stage build Strapi dengan Bun & Node Alpine
+│   ├── src/middlewares/      # Custom middleware (rate-limit in-memory)
+│   ├── Dockerfile            # Multi-stage build Strapi dengan pnpm & Node Alpine
 │   └── package.json
-├── frontend/                 # Source code Next.js 16 (Blog Publik)
-│   ├── src/app/              # App router (/ beranda, /article/[slug], /category/[slug])
-│   ├── src/components/       # UI Components (RichContentRenderer, Callout, VideoEmbed, dll)
-│   ├── Dockerfile            # Multi-stage build Next.js Standalone
+├── frontend/                 # Source code Next.js 16 (Blog Publik - Package Manager: Bun)
+│   ├── src/app/              # App router (/ beranda, /article/[slug], /category/[slug], /author/[slug], /tag/[slug])
+│   │   ├── api/              # Route Handlers (/api/revalidate, /api/preview, /api/exit-preview)
+│   │   ├── feed.xml/         # RSS 2.0 XML Feed endpoint
+│   │   ├── sitemap.ts        # Dynamic Next.js Sitemap
+│   │   └── article/[slug]/opengraph-image.tsx # Dynamic OG Image (1200x630)
+│   ├── src/components/       # UI Components (DraftModeBanner, ArticleJsonLd, RichContentRenderer, dll)
+│   ├── src/lib/              # Client Strapi v5 dengan On-Demand Tagged Cache (3600s)
+│   ├── Dockerfile            # Multi-stage build Next.js Standalone dengan Bun
 │   └── package.json
 ├── docs/                     # Arsip dokumentasi perencanaan (PRD, Editorial Guide, System Design, Roadmap)
 ├── docker-compose.yml        # Orkestrasi Docker (db, strapi, frontend, cloudflare-net)
@@ -36,152 +58,115 @@ Platform publikasi konten dan blog modern untuk artikel teknologi dan hobi, diba
 
 ---
 
-## Panduan Lengkap Deployment ke Server (Step-by-Step)
+## 🚀 Fitur Utama & Integrasi Lanjutan
 
-Ikuti langkah-langkah di bawah ini untuk mendeploy aplikasi ini ke server homelab atau VPS Anda:
+### 1. Sinkronisasi Data On-Demand & Webhook Revalidation
+Next.js menggunakan strategi **On-Demand ISR (Incremental Static Regeneration)** dengan cache tag `articles` (durasi default 3600s). Setiap kali ada artikel dibuat, diubah, dipublikasikan, atau dihapus di Strapi, Strapi Webhook akan memanggil endpoint `/api/revalidate` untuk membuang cache lama seketika tanpa perlu build ulang atau restart container.
 
-### Tahap 1: Di Komputer Lokal (Push Kode Terbaru)
+### 2. Live Draft Mode / Preview Konten
+Penulis dapat melihat tampilan draf artikel sebelum dipublikasikan ke publik:
+- Buka URL: `/api/preview?secret=<PREVIEW_SECRET>&slug=<slug-artikel>`
+- Next.js akan mengaktifkan cookie `draftMode()`, mem-bypass cache, dan memanggil Strapi dengan parameter `status=draft`.
+- Muncul floating banner **`DraftModeBanner`** di bagian atas layar dengan tombol instan *"Keluar Preview"* (`/api/exit-preview`).
 
-Pastikan seluruh perubahan lokal Anda telah di-commit, lalu jalankan push ke GitHub:
-```bash
-git push origin main
-```
+### 3. SEO & Visibilitas Mesin Pencari (Google Ready)
+- **Dynamic Sitemap (`/sitemap.xml`)**: Otomatis mengindeks beranda, seluruh artikel, kategori, tag, dan author dengan URL kanonikal berbasis `NEXT_PUBLIC_SITE_URL`.
+- **RSS 2.0 XML Feed (`/feed.xml`)**: Format RSS 2.0 lengkap untuk pembaca feed reader.
+- **Dynamic OpenGraph Image**: Menghasilkan gambar media sosial 1200x630px otomatis via `ImageResponse` dengan judul artikel, kategori, dan brand Logikanya.tech.
+- **JSON-LD Schema.org**: Data terstruktur `BlogPosting`, `BreadcrumbList`, dan `Person` di setiap artikel untuk Google Rich Snippets.
 
----
-
-### Tahap 2: Di Server (Clone / Pull Proyek & Setup Environment)
-
-1. **Masuk ke Server via SSH**:
-   ```bash
-   ssh user@ip-server-anda
-   ```
-
-2. **Clone atau Pull Repositori**:
-   * *Jika deploy pertama kali*:
-     ```bash
-     git clone git@github.com:Cloumus30/blog.git
-     cd blog
-     ```
-   * *Jika memperbarui proyek yang sudah ada*:
-     ```bash
-     cd /path/ke/blog
-     git pull origin main
-     ```
-
-3. **Pastikan Docker Network `cloudflare-net` Aktif**:
-   Periksa apakah network tunnel sudah ada di server:
-   ```bash
-   docker network ls | grep cloudflare-net
-   ```
-   *(Jika belum ada, buat dengan `docker network create cloudflare-net`).*
-
-4. **Siapkan Berkas `.env` di Server**:
-   Salin template `.env.example`:
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-   Konfigurasikan nilai berikut:
-   * **`POSTGRES_PASSWORD`**: Ganti dengan password database yang aman.
-   * **Strapi Secrets**: Ganti `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `JWT_SECRET`, dll dengan string acak (bisa gunakan `openssl rand -base64 32`).
-   * **`NEXT_PUBLIC_STRAPI_API_URL`**: Masukkan domain publik Strapi Anda yang diarahkan via Cloudflare Tunnel (contoh: `https://cms.domainanda.com`).
-   * *Catatan*: Biarkan `STRAPI_API_TOKEN` kosong terlebih dahulu pada tahap ini.
+### 4. Keamanan & Hardening Produksi
+- **HTTP Security Headers**: Dikonfigurasi di `next.config.ts` (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`).
+- **Strapi In-Memory Rate Limiting**: Membatasi request publik ke `/api/*` (120 req/menit per IP) untuk mencegah scraping masif dan serangan brute-force.
 
 ---
 
-### Tahap 3: Build & Jalankan Container
+## 📖 Panduan Konfigurasi Webhook Strapi ke Next.js
 
-Jalankan Docker Compose untuk mengompilasi dan mengaktifkan seluruh service di background:
-```bash
-docker compose up -d --build
-```
+Agar perubahan artikel di Strapi langsung ter-update di blog Next.js:
 
-Periksa status container:
-```bash
-docker compose ps
-```
-Pastikan ketiga container berikut berstatus `Up` / `healthy`:
-* `cms_postgres`
-* `cms_strapi`
-* `cms_frontend`
-
----
-
-### Tahap 4: Setup Akun Admin & API Token Strapi
-
-1. **Akses Panel Admin Strapi**:
-   * Buka browser di `https://cms.domainanda.com/admin` (atau `http://ip-server:1337/admin`).
-   * Isi formulir untuk membuat akun Administrator utama Anda.
-
-2. **Generate API Token untuk Next.js**:
-   * Buka menu **Settings** (ikon gerigi) &rarr; **API Tokens**.
-   * Klik tombol **Create new API Token**:
-     - **Name**: `Nextjs Frontend Token`
-     - **Token type**: **Full Access** *(atau Read-Only)*
-     - **Token duration**: **Unlimited**
-   * Klik **Save**, lalu **salin (*copy*) token panjang** yang ditampilkan di layar.
-
-3. **Simpan Token ke `.env` Server**:
-   Buka kembali berkas `.env` di server:
-   ```bash
-   nano .env
-   ```
-   Tempelkan token ke variabel:
-   ```env
-   STRAPI_API_TOKEN=paste_token_panjang_anda_disini
-   ```
-
-4. **Restart Container Frontend**:
-   Jalankan perintah ini agar container Next.js membaca token yang baru dimasukkan:
-   ```bash
-   docker compose up -d frontend
-   ```
+1. Buka **Strapi Admin Panel** (`https://cms.domainanda.com/admin` atau `http://localhost:1337/admin`).
+2. Masuk ke **Settings** &rarr; **Webhooks** (di bawah *Global Settings*).
+3. Klik **+ Create new webhook**.
+4. Isi data konfigurasi:
+   - **Name**: `Next.js Revalidation`
+   - **Url**: `https://blog.domainanda.com/api/revalidate` *(atau `http://localhost:3000/api/revalidate` saat testing)*
+   - **Headers**:
+     - Key: `Authorization`
+     - Value: `Bearer logikanya-secret-token-2026` *(sesuaikan dengan `REVALIDATION_SECRET` di `.env`)*
+   - **Events**: Pada bagian **Entry**, centang:
+     - `Create`, `Update`, `Delete`, `Publish`, `Unpublish`
+5. Klik **Save**.
+6. Klik tombol **Trigger** untuk menguji — respon akan mengembalikan status `200 OK` bertanda hijau.
 
 ---
 
-### Tahap 5: Konfigurasi Routing Cloudflare Tunnel
+## 🛠️ Pengembangan Lokal (Local Development)
 
-Karena container `cms_frontend` dan `cms_strapi` terhubung ke network `cloudflare-net` bersama container `cloudflared`, Anda cukup menambahkan 2 Public Hostname di dashboard **Cloudflare Zero Trust** (atau berkas konfigurasi tunnel):
-
-| Subdomain | Service Type | URL Target di Tunnel |
-| :--- | :---: | :--- |
-| **`blog.domainanda.com`** | `HTTP` | `cms_frontend:3000` |
-| **`cms.domainanda.com`** | `HTTP` | `cms_strapi:1337` |
-
-> [!NOTE]
-> Anda tidak perlu menggunakan IP host atau localhost, karena Cloudflare Tunnel dapat langsung menjangkau container menggunakan DNS internal Docker (`cms_frontend:3000` dan `cms_strapi:1337`).
-
----
-
-### Tahap 6: Verifikasi & Pengujian
-
-1. **Uji Penulisan Konten**: Masuk ke Strapi Admin (`https://cms.domainanda.com/admin`), buat 1 artikel baru dengan fitur Better Blocks (tabel, teks berwarna, atau embed video), lalu klik **Publish**.
-2. **Uji Tampilan Publik**: Buka blog Anda (`https://blog.domainanda.com`). Artikel baru akan langsung muncul berkat fitur ISR (Incremental Static Regeneration).
-
----
-
-## Pengembangan Lokal (Local Development)
-
-Jika ingin menjalankan proyek secara lokal tanpa Docker:
+Pastikan mematuhi aturan package manager resmi:
 
 ```bash
-# 1. Menjalankan Strapi Backend
+# 1. Menjalankan Strapi Backend (Wajib pnpm)
 cd backend
-bun install
-bun run dev
+pnpm install
+pnpm run develop
 
-# 2. Menjalankan Next.js Frontend (di terminal terpisah)
+# 2. Menjalankan Next.js Frontend (Wajib bun di terminal terpisah)
 cd frontend
 bun install
 bun run dev
 ```
 
-* Strapi Admin: `http://localhost:1337/admin`
-* Next.js Blog: `http://localhost:3000`
+* **Blog Publik**: `http://localhost:3000`
+* **Strapi Admin**: `http://localhost:1337/admin`
+* **Sitemap**: `http://localhost:3000/sitemap.xml`
+* **RSS Feed**: `http://localhost:3000/feed.xml`
 
 ---
 
-## Dokumentasi Lengkap
+## 🚢 Panduan Deployment ke Server (Docker Compose)
+
+### 1. Di Komputer Lokal (Push Kode Terbaru)
+```bash
+git push origin main
+```
+
+### 2. Di Server (Clone / Pull Proyek)
+```bash
+ssh user@ip-server-anda
+cd /path/ke/blog
+git pull origin main
+```
+
+### 3. Konfigurasi Berkas `.env` di Server
+Salin dari `.env.example` dan lengkapi:
+```bash
+cp .env.example .env
+nano .env
+```
+Pastikan variabel berikut terisi:
+```env
+NEXT_PUBLIC_SITE_URL=https://blog.domainanda.com
+NEXT_PUBLIC_STRAPI_API_URL=https://cms.domainanda.com
+STRAPI_INTERNAL_URL=http://cms_strapi:1337
+STRAPI_API_TOKEN=token_strapi_full_access
+REVALIDATION_SECRET=string_rahasia_webhook_anda
+PREVIEW_SECRET=string_rahasia_preview_anda
+```
+
+### 4. Build & Jalankan Container
+```bash
+docker compose up -d --build
+```
+
+### 5. Routing Cloudflare Tunnel (Zero Inbound Open Ports)
+Di dashboard Cloudflare Zero Trust (atau file konfigurasi cloudflared), arahkan:
+- **`blog.domainanda.com`** &rarr; `HTTP` ke `cms_frontend:3000`
+- **`cms.domainanda.com`** &rarr; `HTTP` ke `cms_strapi:1337`
+
+---
+
+## 📚 Dokumentasi Teknis Tambahan
 
 Dokumentasi detail arsitektur, PRD, dan panduan editorial tersimpan di direktori [`docs/`](./docs/):
 * [01 - Product Requirements Document & Executive Summary](./docs/01_EXECUTIVE_SUMMARY_AND_PRD.md)

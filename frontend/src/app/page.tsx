@@ -2,8 +2,8 @@ import { getArticles, getCategories } from '@/lib/strapi';
 import HomeClient from '@/components/HomeClient';
 
 export const metadata = {
-  title: 'TechHobby — Blog Teknologi & Catatan Hobi',
-  description: 'Artikel, tutorial pemrograman, ulasan teknologi, dan catatan hobi mandiri.',
+  title: 'Logikanya.tech — Blog Wawasan Logika, Kode & Teknologi',
+  description: 'Artikel, tutorial pemrograman, eksplorasi teknologi, dan catatan rekayasa perangkat lunak.',
 };
 
 export default async function HomePage() {

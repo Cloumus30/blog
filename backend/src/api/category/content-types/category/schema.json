@@ -26,8 +26,9 @@
       "type": "text"
     },
     "color": {
-      "type": "string",
-      "default": "#3b82f6"
+      "type": "customField",
+      "customField": "plugin::color-picker.color",
+      "default": "#D95D39"
     },
     "articles": {
       "type": "relation",

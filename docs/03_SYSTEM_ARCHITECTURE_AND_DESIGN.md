@@ -3,7 +3,7 @@
 | Metadata Teknis | Keterangan |
 | :--- | :--- |
 | **Arsitektur Utama** | Decoupled / Headless CMS |
-| **Runtime & Package Manager** | Bun 1.x (Ultra-fast package manager & JavaScript runtime) |
+| **Runtime & Package Manager** | **pnpm** (Backend / Strapi) & **Bun 1.x** (Frontend / Next.js) |
 | **Backend Service** | Strapi v4/v5 |
 | **Frontend Framework** | Next.js (App Router, Server Components) / Astro |
 | **Database** | PostgreSQL 15+ |
@@ -81,7 +81,7 @@ Menyimpan data postingan blog:
 * `name`: String (Unique)
 * `slug`: UID (Target field: `name`, Unique)
 * `description`: Text (Optional)
-* `color`: String (Hex code warna untuk badge kategori di UI)
+* `color`: Custom Field (`plugin::color-picker.color` via `@strapi/plugin-color-picker`, default: `#D95D39`)
 
 ### 2.3 Collection Type: `tags`
 * `id`: Integer
@@ -93,7 +93,7 @@ Menyimpan data postingan blog:
 * `name`: String (Required)
 * `bio`: Text
 * `avatar`: Media Relation (Single image)
-* `social_links`: JSON (Twitter/X, GitHub, LinkedIn, Website)
+* `social_links`: Repeatable Component (`shared.social-link`: `platform` [String], `url` [String])
 * `user_account`: Relation `oneToOne` ke akun `admin::user` Strapi
 
 ---
@@ -102,13 +102,17 @@ Menyimpan data postingan blog:
 
 Untuk menjamin waktu respon di bawah 1 detik dan ketahanan traffic tinggi:
 
-1. **Incremental Static Regeneration (ISR)**:
-   * Halaman blog di-*render* menjadi file HTML statis saat *build time*.
-   * Ketika ada artikel baru atau perubahan artikel di Strapi, Strapi menembak **Webhook** ke endpoint `/api/revalidate` pada Next.js frontend (*On-Demand Revalidation*).
-   * Halaman artikel spesifik diperbarui di latar belakang (*cache bust*) tanpa perlu me-*rebuild* seluruh website.
-2. **Kemandirian Operasional (High Resilience)**:
+1. **On-Demand Incremental Static Regeneration (ISR)**:
+   * Next.js menerapkan fetch cache berdurasi default `revalidate: 3600` dengan cache tag `articles`.
+   * Ketika artikel di-publish, di-update, di-unpublish, atau dihapus di Strapi, Strapi mengirimkan HTTP POST ke endpoint Next.js `/api/revalidate` dengan header rahasia `Authorization: Bearer <REVALIDATION_SECRET>`.
+   * Next.js memicu `revalidateTag('articles', 'max')` dan `revalidatePath('/article/[slug]')` seketika untuk membuang cache lama tanpa perlu me-rebuild atau me-restart aplikasi.
+2. **Next.js Live Draft Mode & Preview**:
+   * Endpoint `/api/preview?secret=<PREVIEW_SECRET>&slug=<slug>` mengaktifkan cookie `draftMode()`.
+   * Halaman detail artikel memeriksa status draf dan memanggil Strapi dengan query parameter `status=draft&publicationState=preview` serta `cache: 'no-store'` untuk melihat konten belum rilis.
+   * Floating banner `DraftModeBanner` tampil di atas halaman dengan tombol instan `/api/exit-preview`.
+3. **Kemandirian Operasional (High Resilience)**:
    * Karena frontend memanfaatkan static caching di Edge/CDN, blog publik tetap dapat dibaca pembaca 100% normal meskipun backend Strapi sedang di-restart atau mengalami *maintenance*.
-3. **Pencarian Cepat Sisi Klien (Client-side / Hybrid Search)**:
+4. **Pencarian Cepat Sisi Klien (Client-side / Hybrid Search)**:
    * Frontend mengunduh index pencarian ringan (berisi `title`, `slug`, `excerpt`, `category`, `tags`) saat pertama kali dibuka, memungkinkan pencarian instan tanpa membebani database backend.
 
 ---
@@ -125,7 +129,8 @@ Frontend menggunakan API Token berjenis **Read-Only** untuk mengakses konten yan
 
 ### 4.2 Prinsip Keamanan
 * **Prinsip Hak Akses Terkecil (Least Privilege)**: Endpoint publik Strapi hanya mengizinkan pembacaan data publik. Seluruh endpoint mutasi (Create, Update, Delete) terkunci hanya untuk token admin/penulis yang terautentikasi.
-* **CORS & Rate Limiting**: Backend Strapi mengonfigurasi CORS hanya menerima permintaan dari domain resmi frontend dan dashboard admin, dilengkapi rate limiting untuk mencegah serangan DoS.
+* **CORS & Rate Limiting Backend**: Backend Strapi dilengkapi middleware in-memory rate limiting (`src/middlewares/rate-limit.ts`) yang membatasi 120 request/menit per IP untuk endpoint `/api/*` guna mencegah scraping masif dan serangan DDoS.
+* **HTTP Security Headers Frontend**: Next.js menginjeksi header perlindungan standar industri: `X-Frame-Options: SAMEORIGIN` (mencegah Clickjacking), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, dan `Permissions-Policy`.
 * **Penyimpanan Media Terisolasi**: File media disimpan di Cloud Storage (Cloudinary/S3/R2), tidak membebani kapasitas disk lokal server database.
 
 ---
@@ -141,7 +146,7 @@ Seluruh komponen inti dijalankan di server pribadi dengan koordinasi Docker Comp
    * Volume: `postgres_data:/var/lib/postgresql/data` (Named Volume untuk performa I/O tinggi & persistensi data).
    * Keamanan: Port tidak diekspos ke host publik, hanya dapat diakses oleh container `strapi` melalui Docker internal network.
 2. **`service: strapi` (CMS Backend)**:
-   * Build: Multi-stage Dockerfile memanfaatkan `oven/bun:alpine` atau Node Alpine dengan Bun untuk instalasi dependensi super cepat dan build aplikasi.
+   * Build: Multi-stage Dockerfile memanfaatkan Node Alpine dengan `pnpm` untuk manajemen dependensi backend yang terisolasi dan stabil.
    * Port Mapping: `127.0.0.1:1337:1337` (hanya mendengarkan antarmuka lokal localhost server).
    * Volume: `strapi_uploads:/app/public/uploads` (Named Volume untuk penyimpanan aset lokal).
    * Depends On: `db` (menunggu database siap sebelum Strapi menyala).

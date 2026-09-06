@@ -43,6 +43,9 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
   'better-blocks': {
     enabled: true,
   },
+  'color-picker': {
+    enabled: true,
+  },
 });
 
 export default config;

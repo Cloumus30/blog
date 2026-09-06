@@ -1,6 +1,6 @@
-# Arsip Dokumentasi Perencanaan CMS (Tech & Hobby Publishing Platform)
+# Arsip Dokumentasi Perencanaan CMS — Logikanya.tech
 
-Selamat datang di repositori dokumentasi perencanaan pembuatan **Content Management System (CMS)** untuk blog teknologi dan hobi. Dokumen-dokumen ini disusun untuk memudahkan koordinasi antara **Tim Manajemen**, **Tim Penulis/Editor**, dan **Tim Pengembang (Engineer)**.
+Selamat datang di repositori dokumentasi perencanaan pembuatan **Content Management System (CMS)** untuk blog teknologi dan rekayasa perangkat lunak **Logikanya.tech**. Dokumen-dokumen ini disusun untuk memudahkan koordinasi antara **Tim Manajemen**, **Tim Penulis/Editor**, dan **Tim Pengembang (Engineer)**.
 
 ---
 
@@ -18,7 +18,7 @@ Selamat datang di repositori dokumentasi perencanaan pembuatan **Content Managem
 ## Ringkasan Spesifikasi Kunci Proyek
 
 * **Model Arsitektur**: Headless CMS terpisah (Strapi v4/v5) + Frontend publik modern (Next.js App Router / Astro).
-* **Runtime & Package Manager**: **Bun 1.x** (performa instalasi dependensi dan eksekusi koding ultra-cepat).
+* **Runtime & Package Manager**: **pnpm** untuk Backend (Strapi) dan **Bun 1.x** untuk Frontend (Next.js).
 * **Basis Data & Media**: PostgreSQL 15+ dan Cloud Storage (Cloudinary / S3 / Cloudflare R2).
 * **Alur Editorial**: *Direct Publish* — penulis dapat membuat draf dan mempublikasikan artikel secara mandiri, lengkap dengan editor blok khusus (blok kode bersintaks, callout, upload gambar, embed URL gambar, serta embed video YouTube/Vimeo).
 * **Fitur Utama Pembaca**: *Clean Reader Mode* — pencarian cepat, filter taksonomi (kategori & tag), daftar isi otomatis (*auto-TOC*), pemutar video responsif lazy-load, sintaks koding berwarna dengan tombol salin, dan dukungan Dark/Light mode.

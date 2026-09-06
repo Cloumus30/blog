@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { Article, Category, Tag } from './types';
+import { Article, Category, Author, Tag } from './types';
 
 const STRAPI_URL = process.env.STRAPI_INTERNAL_URL || process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://127.0.0.1:1337';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
@@ -29,7 +29,7 @@ export const DEMO_ARTICLES: Article[] = [
       id: 1,
       name: 'DevOps & Cloud',
       slug: 'devops-cloud',
-      color: '#3b82f6',
+      color: '#D95D39',
     },
     tags: [
       { id: 1, name: 'docker', slug: 'docker' },
@@ -41,7 +41,10 @@ export const DEMO_ARTICLES: Article[] = [
       name: 'Cloudias',
       bio: 'Software Engineer & Homelab Enthusiast',
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-      socialLinks: { github: 'https://github.com' }
+      socialLinks: [
+        { platform: 'github', url: 'https://github.com' },
+        { platform: 'website', url: 'https://cloudias.dev' }
+      ]
     },
     content: [
       {
@@ -180,7 +183,7 @@ services:
       id: 1,
       name: 'DevOps & Cloud',
       slug: 'devops-cloud',
-      color: '#3b82f6',
+      color: '#D95D39',
     },
     tags: [
       { id: 7, name: 'bun', slug: 'bun' },
@@ -227,13 +230,26 @@ function formatCoverUrl(url?: string): string {
   return `${STRAPI_URL}${url}`;
 }
 
-export const getArticles = cache(async function getArticles(): Promise<Article[]> {
+export const getArticles = cache(async function getArticles(options?: { isDraft?: boolean }): Promise<Article[]> {
   try {
-    const res = await fetch(`${STRAPI_URL}/api/articles?populate=*&sort=publishedAt:desc`, {
-      headers: getHeaders(),
-      next: { revalidate: 1 }, // Revalidasi cepat 1 detik agar konten baru langsung muncul
-      signal: AbortSignal.timeout(2000), // Timeout 2s agar tidak hanging saat build offline
-    });
+    const isDraft = options?.isDraft;
+    const draftParam = isDraft ? '&status=draft&publicationState=preview' : '';
+    const fetchOptions: RequestInit = isDraft
+      ? {
+          headers: getHeaders(),
+          cache: 'no-store',
+          signal: AbortSignal.timeout(3000),
+        }
+      : {
+          headers: getHeaders(),
+          next: { revalidate: 3600, tags: ['articles'] },
+          signal: AbortSignal.timeout(3000),
+        };
+
+    const res = await fetch(
+      `${STRAPI_URL}/api/articles?populate[0]=category&populate[1]=tags&populate[2]=cover_image&populate[3]=author.avatar&populate[4]=author.social_links&sort=publishedAt:desc${draftParam}`,
+      fetchOptions
+    );
     if (!res.ok) {
       console.warn(`Strapi fetch returned status ${res.status}`);
       return DEMO_ARTICLES;
@@ -242,8 +258,31 @@ export const getArticles = cache(async function getArticles(): Promise<Article[]
     if (!data.data || data.data.length === 0) {
       return DEMO_ARTICLES;
     }
+    type StrapiArticleItem = {
+      id: number;
+      title: string;
+      slug: string;
+      excerpt?: string;
+      better_content?: unknown;
+      content?: unknown;
+      video_url?: string;
+      cover_image?: { url?: string };
+      reading_time?: number;
+      publishedAt?: string;
+      createdAt?: string;
+      category?: { id: number; name: string; slug: string; color?: string };
+      tags?: Array<{ id: number; name: string; slug: string }>;
+      author?: {
+        id: number;
+        name: string;
+        bio?: string;
+        avatar?: { url?: string };
+        social_links?: Array<{ id?: number; platform?: string; url?: string }>;
+      };
+    };
+
     // Mapping Strapi v5 data structure
-    return data.data.map((item: any) => ({
+    return (data.data as StrapiArticleItem[]).map(item => ({
       id: item.id,
       title: item.title,
       slug: item.slug,
@@ -254,19 +293,26 @@ export const getArticles = cache(async function getArticles(): Promise<Article[]
       videoUrl: item.video_url || undefined,
       coverImageUrl: formatCoverUrl(item.cover_image?.url),
       readingTime: item.reading_time || 3,
-      publishedAt: item.publishedAt || item.createdAt,
+      publishedAt: item.publishedAt || item.createdAt || new Date().toISOString(),
       category: item.category ? {
         id: item.category.id,
         name: item.category.name,
         slug: item.category.slug,
-        color: item.category.color || '#3b82f6'
+        color: item.category.color || '#D95D39'
       } : undefined,
-      tags: item.tags?.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) || [],
+      tags: item.tags?.map(t => ({ id: t.id, name: t.name, slug: t.slug })) || [],
       author: item.author ? {
         id: item.author.id,
         name: item.author.name,
         bio: item.author.bio,
-        avatarUrl: item.author.avatar?.url ? formatCoverUrl(item.author.avatar.url) : undefined
+        avatarUrl: item.author.avatar?.url ? formatCoverUrl(item.author.avatar.url) : undefined,
+        socialLinks: Array.isArray(item.author.social_links)
+          ? item.author.social_links.map(s => ({
+              id: s.id,
+              platform: s.platform || '',
+              url: s.url || ''
+            }))
+          : undefined
       } : undefined
     }));
   } catch (err) {
@@ -276,8 +322,11 @@ export const getArticles = cache(async function getArticles(): Promise<Article[]
   }
 });
 
-export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  const articles = await getArticles();
+export async function getArticleBySlug(
+  slug: string,
+  options?: { isDraft?: boolean }
+): Promise<Article | null> {
+  const articles = await getArticles(options);
   const found = articles.find(a => a.slug === slug);
   return found || null;
 }
@@ -292,3 +341,84 @@ export async function getCategories(): Promise<Category[]> {
   });
   return Array.from(categoryMap.values());
 }
+
+export async function getRelatedArticles(
+  currentSlug: string,
+  categorySlug?: string,
+  limit: number = 3
+): Promise<Article[]> {
+  const articles = await getArticles();
+  const filtered = articles.filter(a => a.slug !== currentSlug);
+
+  if (categorySlug) {
+    const sameCategory = filtered.filter(a => a.category?.slug === categorySlug);
+    if (sameCategory.length >= limit) {
+      return sameCategory.slice(0, limit);
+    }
+    const others = filtered.filter(a => a.category?.slug !== categorySlug);
+    return [...sameCategory, ...others].slice(0, limit);
+  }
+
+  return filtered.slice(0, limit);
+}
+
+export async function getAdjacentArticles(currentSlug: string): Promise<{
+  prev: Article | null;
+  next: Article | null;
+}> {
+  const articles = await getArticles();
+  const currentIndex = articles.findIndex(a => a.slug === currentSlug);
+
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
+  }
+
+  // articles diurutkan dari yang terbaru (index 0) ke terlama
+  const next = currentIndex > 0 ? articles[currentIndex - 1] : null; // Lebih baru
+  const prev = currentIndex < articles.length - 1 ? articles[currentIndex + 1] : null; // Lebih lama
+
+  return { prev, next };
+}
+
+export function slugifyAuthor(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-');
+}
+
+export async function getAuthorByIdOrSlug(identifier: string): Promise<Author | null> {
+  const articles = await getArticles();
+  const decoded = decodeURIComponent(identifier).toLowerCase();
+  const matchedArticle = articles.find(
+    a => a.author && (String(a.author.id) === decoded || slugifyAuthor(a.author.name) === decoded)
+  );
+  return matchedArticle?.author || null;
+}
+
+export async function getArticlesByAuthor(identifier: string): Promise<Article[]> {
+  const articles = await getArticles();
+  const decoded = decodeURIComponent(identifier).toLowerCase();
+  return articles.filter(
+    a => a.author && (String(a.author.id) === decoded || slugifyAuthor(a.author.name) === decoded)
+  );
+}
+
+export async function getTags(): Promise<Tag[]> {
+  const articles = await getArticles();
+  const tagMap = new Map<string, Tag>();
+  articles.forEach(a => {
+    a.tags?.forEach(t => {
+      tagMap.set(t.slug, t);
+    });
+  });
+  return Array.from(tagMap.values());
+}
+
+export async function getArticlesByTag(tagSlug: string): Promise<Article[]> {
+  const articles = await getArticles();
+  const decoded = decodeURIComponent(tagSlug).toLowerCase();
+  return articles.filter(a => a.tags?.some(t => t.slug.toLowerCase() === decoded));
+}
+
+

@@ -24,6 +24,7 @@ const config: Core.Config.Middlewares = [
     },
   },
   'strapi::cors',
+  'global::rate-limit',
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',

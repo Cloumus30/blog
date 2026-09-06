@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Terminal, Code2 } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -8,15 +8,15 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand Info */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-[#D95D39] flex items-center justify-center text-white shadow-sm shadow-[#D95D39]/30">
               <Terminal className="w-4 h-4" />
             </div>
             <div>
               <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                TechHobby CMS
+                Logikanya<span className="text-[#D95D39]">.tech</span>
               </span>
-              <p className="text-xs text-slate-500">
-                Media publikasi artikel teknologi dan catatan hobi mandiri.
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Media publikasi artikel teknologi, logika pemrograman, dan catatan rekayasa perangkat lunak.
               </p>
             </div>
           </div>

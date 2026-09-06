@@ -4,6 +4,7 @@
  */
 import betterBlocks from "@qkix/strapi-plugin-better-blocks/strapi-admin";
 import strapiCloud from "@strapi/plugin-cloud/strapi-admin";
+import colorPicker from "@strapi/plugin-color-picker/strapi-admin";
 import usersPermissions from "@strapi/plugin-users-permissions/strapi-admin";
 import { renderAdmin } from "@strapi/strapi/admin";
 
@@ -11,6 +12,7 @@ renderAdmin(document.getElementById("strapi"), {
   plugins: {
     "better-blocks": betterBlocks,
     "strapi-cloud": strapiCloud,
+    "color-picker": colorPicker,
     "users-permissions": usersPermissions,
   },
 });

@@ -39,16 +39,16 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
 
   return (
     <div className="space-y-12 sm:space-y-16 pb-12">
-      {/* Centered Hero Header (Untitled UI Style) */}
+      {/* Centered Hero Header (Brand Logikanya.tech) */}
       <section className="text-center pt-6 sm:pt-10 max-w-3xl mx-auto space-y-4">
-        <span className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 tracking-wide uppercase">
-          The blog
+        <span className="text-xs sm:text-sm font-semibold text-[#D95D39] tracking-wider uppercase">
+          Jurnal & Catatan Rekayasa
         </span>
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
           <span className="relative inline-block">
-            Writings from our team
+            Wawasan Logika & Kode
             <svg
-              className="absolute -top-3 -right-6 sm:-right-8 w-6 h-6 text-slate-400 dark:text-slate-500"
+              className="absolute -top-3 -right-6 sm:-right-8 w-6 h-6 text-[#D95D39]/70"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -60,7 +60,7 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
           </span>
         </h1>
         <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          The latest industry news, interviews, technologies, and resources.
+          Eksplorasi logika pemrograman, tutorial praktis, arsitektur sistem, dan catatan teknologi terkini.
         </p>
       </section>
 
@@ -94,7 +94,7 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
               <Link
                 href={`/article/${featuredArticle.slug}`}
-                className="hover:underline flex items-center gap-2 group-hover:text-blue-200 transition-colors"
+                className="hover:underline flex items-center gap-2 group-hover:text-[#D95D39] transition-colors"
               >
                 <span>{featuredArticle.title}</span>
                 <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 inline-block opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
@@ -137,8 +137,8 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
             onClick={() => setSelectedCategory('all')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedCategory === 'all'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                ? 'bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30'
+                : 'bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]'
             }`}
           >
             Semua Artikel
@@ -150,8 +150,8 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
               onClick={() => setSelectedCategory(cat.slug)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat.slug
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  ? 'bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30'
+                  : 'bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]'
               }`}
             >
               {cat.name}
@@ -167,7 +167,7 @@ export default function HomeClient({ initialArticles, categories }: HomeClientPr
             placeholder="Cari artikel, topik, kata kunci..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-blue-500 dark:focus:border-blue-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-slate-100 dark:bg-[#2C303A] border border-transparent focus:border-[#D95D39] dark:focus:border-[#D95D39] text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none transition-all"
           />
         </div>
       </section>

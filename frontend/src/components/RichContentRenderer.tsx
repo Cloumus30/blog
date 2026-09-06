@@ -7,8 +7,20 @@ import CodeBlock from './CodeBlock';
 import CalloutBox from './CalloutBox';
 import VideoEmbed from './VideoEmbed';
 
+interface FallbackBlock {
+  type: string;
+  level?: number;
+  text?: string;
+  code?: string;
+  language?: string;
+  calloutType?: 'info' | 'warning' | 'danger';
+  url?: string;
+  caption?: string;
+  alt?: string;
+}
+
 interface RichContentRendererProps {
-  blocks: any;
+  blocks: unknown;
 }
 
 export default function RichContentRenderer({ blocks }: RichContentRendererProps) {
@@ -27,6 +39,8 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
   const isBlocksFormat =
     Array.isArray(blocks) &&
     blocks.length > 0 &&
+    typeof blocks[0] === 'object' &&
+    blocks[0] !== null &&
     'type' in blocks[0] &&
     ('children' in blocks[0] ||
       blocks[0].type === 'table' ||
@@ -38,17 +52,25 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
     return (
       <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed">
         <BlocksRenderer
-          content={blocks}
+          content={blocks as React.ComponentProps<typeof BlocksRenderer>['content']}
           codeCopyButton={true}
           blocks={{
             paragraph: ({ children, style }) => (
-              <p style={style} className="my-4 leading-relaxed text-base text-slate-700 dark:text-slate-300">
+              <p style={style} className="my-5 leading-[1.8] sm:leading-[1.85] text-[17px] sm:text-[18px] text-slate-700 dark:text-slate-300 font-normal">
                 {children}
               </p>
             ),
             heading: ({ children, level, style }) => {
               const textContent = Array.isArray(children)
-                ? children.map(c => (typeof c === 'string' ? c : (c as any)?.props?.children || '')).join('')
+                ? children
+                    .map(c =>
+                      typeof c === 'string'
+                        ? c
+                        : React.isValidElement(c)
+                        ? String((c.props as { children?: React.ReactNode })?.children || '')
+                        : ''
+                    )
+                    .join('')
                 : String(children || '');
               const headingId = slugify(textContent || 'section');
               if (level === 3) {
@@ -56,9 +78,16 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
                   <h3
                     id={headingId}
                     style={style}
-                    className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-8 mb-3 scroll-mt-24"
+                    className="group flex items-center text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mt-8 mb-3.5 scroll-mt-24 tracking-tight"
                   >
-                    {children}
+                    <span>{children}</span>
+                    <a
+                      href={`#${headingId}`}
+                      aria-label="Tautan langsung ke bagian ini"
+                      className="ml-2 text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity text-lg font-normal"
+                    >
+                      #
+                    </a>
                   </h3>
                 );
               }
@@ -66,9 +95,16 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
                 <h2
                   id={headingId}
                   style={style}
-                  className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-10 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
+                  className="group flex items-center text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-12 mb-5 pb-2.5 border-b border-slate-200 dark:border-slate-800 scroll-mt-24 tracking-tight"
                 >
-                  {children}
+                  <span>{children}</span>
+                  <a
+                    href={`#${headingId}`}
+                    aria-label="Tautan langsung ke bagian ini"
+                    className="ml-2.5 text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity text-xl font-normal"
+                  >
+                    #
+                  </a>
                 </h2>
               );
             },
@@ -92,7 +128,7 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
             quote: ({ children, style }) => (
               <blockquote
                 style={style}
-                className="my-6 border-l-4 border-blue-500 pl-4 italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 py-2 rounded-r-lg"
+                className="my-7 border-l-4 border-blue-500 pl-5 italic text-[17px] leading-relaxed text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 py-3.5 rounded-r-xl"
               >
                 {children}
               </blockquote>
@@ -171,7 +207,7 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
   return (
     <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
       {Array.isArray(blocks) &&
-        blocks.map((block: any, idx: number) => {
+        (blocks as FallbackBlock[]).map((block, idx) => {
           switch (block.type) {
             case 'heading': {
               const headingId = slugify(block.text || `section-${idx}`);
@@ -180,9 +216,16 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
                   <h3
                     key={idx}
                     id={headingId}
-                    className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-8 mb-3 scroll-mt-24"
+                    className="group flex items-center text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mt-8 mb-3.5 scroll-mt-24 tracking-tight"
                   >
-                    {block.text}
+                    <span>{block.text}</span>
+                    <a
+                      href={`#${headingId}`}
+                      aria-label="Tautan langsung ke bagian ini"
+                      className="ml-2 text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity text-lg font-normal"
+                    >
+                      #
+                    </a>
                   </h3>
                 );
               }
@@ -190,16 +233,23 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
                 <h2
                   key={idx}
                   id={headingId}
-                  className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-10 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800 scroll-mt-24"
+                  className="group flex items-center text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-12 mb-5 pb-2.5 border-b border-slate-200 dark:border-slate-800 scroll-mt-24 tracking-tight"
                 >
-                  {block.text}
+                  <span>{block.text}</span>
+                  <a
+                    href={`#${headingId}`}
+                    aria-label="Tautan langsung ke bagian ini"
+                    className="ml-2.5 text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity text-xl font-normal"
+                  >
+                    #
+                  </a>
                 </h2>
               );
             }
 
             case 'paragraph':
               return (
-                <p key={idx} className="my-4 leading-relaxed text-base text-slate-700 dark:text-slate-300">
+                <p key={idx} className="my-5 leading-[1.8] sm:leading-[1.85] text-[17px] sm:text-[18px] text-slate-700 dark:text-slate-300 font-normal">
                   {block.text}
                 </p>
               );

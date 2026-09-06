@@ -1,9 +1,15 @@
+export interface SocialLink {
+  id?: number;
+  platform: string;
+  url: string;
+}
+
 export interface Author {
   id: number;
   name: string;
   bio?: string;
   avatarUrl?: string;
-  socialLinks?: Record<string, string>;
+  socialLinks?: SocialLink[];
 }
 
 export interface Category {
@@ -48,7 +54,7 @@ export interface Article {
   title: string;
   slug: string;
   excerpt: string;
-  content: any;
+  content: unknown;
   videoUrl?: string;
   coverImageUrl: string;
   readingTime: number; // Dalam menit
