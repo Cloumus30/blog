@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Search, ArrowRight, Clock, Sparkles, Hash, BookOpen } from 'lucide-react';
-import { Article, Category, Tag } from '@/lib/types';
-import ArticleCardHorizontal from './ArticleCardHorizontal';
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  Search,
+  ArrowRight,
+  Clock,
+  Sparkles,
+  Hash,
+  BookOpen,
+} from "lucide-react";
+import { Article, Category, Tag } from "@/lib/types";
+import ArticleCardHorizontal from "./ArticleCardHorizontal";
 
 interface HomeClientProps {
   initialArticles: Article[];
@@ -18,8 +25,8 @@ export default function HomeClient({
   categories,
   tags = [],
 }: HomeClientProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // Filter artikel berdasarkan pencarian dan kategori
   const filteredArticles = initialArticles.filter((article) => {
@@ -30,13 +37,14 @@ export default function HomeClient({
       article.tags?.some((t) => t.name.toLowerCase().includes(query));
 
     const matchesCategory =
-      selectedCategory === 'all' || article.category?.slug === selectedCategory;
+      selectedCategory === "all" || article.category?.slug === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
 
   // Penentuan artikel unggulan & trending dari Strapi
-  const featuredArticle = initialArticles.find((a) => a.featured) || initialArticles[0];
+  const featuredArticle =
+    initialArticles.find((a) => a.featured) || initialArticles[0];
 
   // 3 artikel berikutnya setelah featured article sebagai trending
   const trendingArticles = initialArticles
@@ -44,14 +52,14 @@ export default function HomeClient({
     .slice(0, 3);
 
   // Status tampilan default (hero bento hanya aktif saat tanpa search & kategori 'all')
-  const isDefaultView = !searchQuery && selectedCategory === 'all';
+  const isDefaultView = !searchQuery && selectedCategory === "all";
 
   // Artikel di feed bawah (tanpa duplikasi dari hero & trending pada default view)
   const feedArticles = isDefaultView
     ? initialArticles.filter(
         (a) =>
           a.id !== featuredArticle?.id &&
-          !trendingArticles.some((t) => t.id === a.id)
+          !trendingArticles.some((t) => t.id === a.id),
       )
     : filteredArticles;
 
@@ -63,8 +71,8 @@ export default function HomeClient({
           new Map(
             initialArticles
               .flatMap((a) => a.tags || [])
-              .map((t) => [t.slug, t])
-          ).values()
+              .map((t) => [t.slug, t]),
+          ).values(),
         );
 
   return (
@@ -83,7 +91,7 @@ export default function HomeClient({
             {/* Bento Kiri: Main Featured Article (Col-span 8 atau 12 jika tidak ada trending) */}
             <div
               className={`relative rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 bg-slate-900 shadow-2xl group transition-all duration-300 hover:border-[#D95D39]/50 min-h-[400px] sm:min-h-[460px] flex flex-col justify-end p-6 sm:p-10 ${
-                trendingArticles.length > 0 ? 'lg:col-span-8' : 'lg:col-span-12'
+                trendingArticles.length > 0 ? "lg:col-span-8" : "lg:col-span-12"
               }`}
             >
               {/* Background Image */}
@@ -146,18 +154,22 @@ export default function HomeClient({
                       />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-[#D95D39] flex items-center justify-center font-bold text-xs text-white">
-                        {featuredArticle.author?.name?.slice(0, 2).toUpperCase() || 'DA'}
+                        {featuredArticle.author?.name
+                          ?.slice(0, 2)
+                          .toUpperCase() || "DA"}
                       </div>
                     )}
                     <div>
                       <div className="text-xs font-bold text-white">
-                        {featuredArticle.author?.name || 'Admin'}
+                        {featuredArticle.author?.name || "Admin"}
                       </div>
                       <div className="text-[11px] text-white/70">
-                        {new Date(featuredArticle.publishedAt).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
+                        {new Date(
+                          featuredArticle.publishedAt,
+                        ).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
                         })}
                       </div>
                     </div>
@@ -179,9 +191,9 @@ export default function HomeClient({
               <div className="lg:col-span-4 flex flex-col justify-between bg-white dark:bg-[#23272F] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    <span className="text-[#D95D39]">⚡</span> Trending Minggu Ini
+                    <span className="text-[#D95D39]">⚡</span> Artikel Terbaru
+                    Minggu Ini
                   </div>
-                  <span className="text-[11px] text-slate-400">Paling banyak dibaca</span>
                 </div>
 
                 <div className="flex flex-col justify-between gap-3 flex-1">
@@ -224,11 +236,11 @@ export default function HomeClient({
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
           <button
             type="button"
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => setSelectedCategory("all")}
             className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30'
-                : 'bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]'
+              selectedCategory === "all"
+                ? "bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30"
+                : "bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]"
             }`}
           >
             Semua Artikel
@@ -240,8 +252,8 @@ export default function HomeClient({
               onClick={() => setSelectedCategory(cat.slug)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat.slug
-                  ? 'bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30'
-                  : 'bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]'
+                  ? "bg-[#D95D39] text-white shadow-md shadow-[#D95D39]/30"
+                  : "bg-slate-100 dark:bg-[#2C303A] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#343946]"
               }`}
             >
               {cat.name}
@@ -274,12 +286,12 @@ export default function HomeClient({
               <span>
                 {searchQuery
                   ? `Hasil Pencarian (${filteredArticles.length})`
-                  : selectedCategory !== 'all'
-                  ? `Kategori: ${
-                      categories.find((c) => c.slug === selectedCategory)?.name ||
-                      selectedCategory
-                    }`
-                  : 'Artikel Terbaru'}
+                  : selectedCategory !== "all"
+                    ? `Kategori: ${
+                        categories.find((c) => c.slug === selectedCategory)
+                          ?.name || selectedCategory
+                      }`
+                    : "Artikel Terbaru"}
               </span>
             </h2>
             <span className="text-xs text-slate-500">
@@ -296,7 +308,8 @@ export default function HomeClient({
           ) : (
             <div className="py-16 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-6">
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Tidak ada artikel yang cocok dengan kriteria pencarian atau kategori ini.
+                Tidak ada artikel yang cocok dengan kriteria pencarian atau
+                kategori ini.
               </p>
             </div>
           )}
@@ -313,8 +326,8 @@ export default function HomeClient({
               Logikanya.tech
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              Jurnal catatan rekayasa perangkat lunak, eksplorasi logika komputasi,
-              dan arsitektur web modern tanpa basa-basi teknis.
+              Jurnal catatan rekayasa perangkat lunak, eksplorasi logika
+              komputasi, dan arsitektur web modern tanpa basa-basi teknis.
             </p>
             <div className="pt-2 flex flex-wrap gap-1.5">
               <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#2C303A] text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-slate-700/60">
