@@ -1,4 +1,4 @@
-import { getArticles, getCategories } from "@/lib/strapi";
+import { getArticles, getCategories, getTags } from "@/lib/strapi";
 import HomeClient from "@/components/HomeClient";
 
 export const metadata = {
@@ -8,14 +8,19 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [articles, categories] = await Promise.all([
+  const [articles, categories, tags] = await Promise.all([
     getArticles(),
     getCategories(),
+    getTags(),
   ]);
 
   return (
     <div className="py-8">
-      <HomeClient initialArticles={articles} categories={categories} />
+      <HomeClient
+        initialArticles={articles}
+        categories={categories}
+        tags={tags}
+      />
     </div>
   );
 }

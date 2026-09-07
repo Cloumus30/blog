@@ -99,6 +99,24 @@ Agar perubahan artikel di Strapi langsung ter-update di blog Next.js:
 5. Klik **Save**.
 6. Klik tombol **Trigger** untuk menguji — respon akan mengembalikan status `200 OK` bertanda hijau.
 
+### 🧪 Revalidasi Manual (Debugging via Browser / cURL)
+
+Selain otomatis via webhook Strapi (metode `POST`), Anda juga dapat memicu pembersihan cache secara langsung menggunakan metode `GET`:
+
+* **Purge Seluruh Cache Blog (Global)**:
+  ```text
+  http://localhost:3000/api/revalidate?secret=logikanya-secret-token-2026
+  ```
+* **Purge Halaman Spesifik Saja**:
+  ```text
+  http://localhost:3000/api/revalidate?secret=logikanya-secret-token-2026&path=/article/slug-artikel-anda
+  ```
+* **Purge Tag Cache Tertentu**:
+  ```text
+  http://localhost:3000/api/revalidate?secret=logikanya-secret-token-2026&tag=articles
+  ```
+*(Ganti token rahasia di atas sesuai dengan nilai `REVALIDATION_SECRET` yang Anda konfigurasikan di `.env`).*
+
 ---
 
 ## 🛠️ Pengembangan Lokal (Local Development)
