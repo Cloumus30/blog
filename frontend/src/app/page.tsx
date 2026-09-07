@@ -1,15 +1,16 @@
-import { getArticles, getCategories } from '@/lib/strapi';
-import HomeClient from '@/components/HomeClient';
+import { getArticles, getCategories } from "@/lib/strapi";
+import HomeClient from "@/components/HomeClient";
 
 export const metadata = {
-  title: 'Logikanya.tech — Blog Wawasan Logika, Kode & Teknologi',
-  description: 'Artikel, tutorial pemrograman, eksplorasi teknologi, dan catatan rekayasa perangkat lunak.',
+  title: "Logikanya.tech — Blog Wawasan Logika, Kode & Teknologi",
+  description:
+    "Artikel, tutorial pemrograman, eksplorasi teknologi, dan catatan rekayasa perangkat lunak.",
 };
 
 export default async function HomePage() {
   const [articles, categories] = await Promise.all([
     getArticles(),
-    getCategories()
+    getCategories(),
   ]);
 
   return (
