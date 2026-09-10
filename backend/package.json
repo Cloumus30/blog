@@ -4,7 +4,7 @@
   "private": true,
   "description": "A Strapi application",
   "scripts": {
-    "build": "strapi build",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 strapi build",
     "console": "strapi console",
     "deploy": "strapi deploy",
     "dev": "strapi develop",
@@ -22,10 +22,12 @@
     "@strapi/plugin-users-permissions": "5.52.3",
     "@strapi/strapi": "5.52.3",
     "better-sqlite3": "12.8.0",
+    "highlight.js": "^11.12.0",
     "pg": "^8.23.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.30.3",
+    "slate": "^0.94.1",
     "styled-components": "^6.0.0"
   },
   "devDependencies": {

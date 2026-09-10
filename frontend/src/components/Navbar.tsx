@@ -16,10 +16,9 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   const cmsStrApiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL;
 
   useEffect(() => {
-    // Check saved theme or system preference
+    // Check saved theme: default to light unless explicitly saved as 'dark'
     const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = saved === 'dark' || (!saved && prefersDark);
+    const shouldBeDark = saved === 'dark';
 
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');

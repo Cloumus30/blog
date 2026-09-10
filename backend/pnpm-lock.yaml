@@ -29,6 +29,9 @@ importers:
       better-sqlite3:
         specifier: 12.8.0
         version: 12.8.0
+      highlight.js:
+        specifier: ^11.12.0
+        version: 11.12.0
       pg:
         specifier: ^8.23.0
         version: 8.23.0
@@ -41,6 +44,9 @@ importers:
       react-router-dom:
         specifier: ^6.30.3
         version: 6.30.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      slate:
+        specifier: ^0.94.1
+        version: 0.94.1
       styled-components:
         specifier: ^6.0.0
         version: 6.5.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4080,6 +4086,10 @@ packages:
 
   highlight.js@10.7.3:
     resolution: {integrity: sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==}
+
+  highlight.js@11.12.0:
+    resolution: {integrity: sha512-nbfWpyRMcMrPMmDwJB+dhX/eiaPKtc2RB+0QZskqJ3WjRA/FDS0e9hZrx8EC/lbEv8gXy98FcDbNa/dspAaJMg==}
+    engines: {node: '>=12.0.0'}
 
   hls.js@1.5.20:
     resolution: {integrity: sha512-uu0VXUK52JhihhnN/MVVo1lvqNNuhoxkonqgO3IpjvQiGpJBdIXMGkofjQb/j9zvV7a1SW8U9g1FslWx/1HOiQ==}
@@ -11894,6 +11904,8 @@ snapshots:
   helmet@6.2.0: {}
 
   highlight.js@10.7.3: {}
+
+  highlight.js@11.12.0: {}
 
   hls.js@1.5.20: {}
 

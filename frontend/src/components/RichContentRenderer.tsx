@@ -2,10 +2,29 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { BlocksRenderer } from '@qkix/better-blocks-react-renderer';
+import { BlocksRenderer, type BlockPlugin, type CustomBlockProps } from '@qkix/better-blocks-react-renderer';
 import CodeBlock from './CodeBlock';
 import CalloutBox from './CalloutBox';
 import VideoEmbed from './VideoEmbed';
+
+// Custom Block Plugin untuk Better Blocks: VS Code Style Code Block
+const vsCodeBlockPlugin: BlockPlugin = {
+  type: 'vscode-code',
+  content: 'void',
+  component: ({ node }: CustomBlockProps) => {
+    const code = typeof node.code === 'string' ? node.code : '';
+    const language = typeof node.language === 'string' ? node.language : 'text';
+    const filename = typeof node.filename === 'string' ? node.filename : undefined;
+
+    return (
+      <CodeBlock
+        code={code}
+        language={language}
+        filename={filename}
+      />
+    );
+  },
+};
 
 interface FallbackBlock {
   type: string;
@@ -13,6 +32,7 @@ interface FallbackBlock {
   text?: string;
   code?: string;
   language?: string;
+  filename?: string;
   calloutType?: 'info' | 'warning' | 'danger';
   url?: string;
   caption?: string;
@@ -46,13 +66,15 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
       blocks[0].type === 'table' ||
       blocks[0].type === 'embed' ||
       blocks[0].type === 'media-embed' ||
-      blocks[0].type === 'button');
+      blocks[0].type === 'button' ||
+      blocks[0].type === 'vscode-code');
 
   if (isBlocksFormat) {
     return (
       <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed">
         <BlocksRenderer
           content={blocks as React.ComponentProps<typeof BlocksRenderer>['content']}
+          blockPlugins={[vsCodeBlockPlugin]}
           codeCopyButton={true}
           blocks={{
             paragraph: ({ children, style }) => (
@@ -255,11 +277,13 @@ export default function RichContentRenderer({ blocks }: RichContentRendererProps
               );
 
             case 'code':
+            case 'vscode-code':
               return (
                 <CodeBlock
                   key={idx}
                   code={block.code || ''}
                   language={block.language || 'text'}
+                  filename={block.filename}
                 />
               );
 
