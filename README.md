@@ -23,6 +23,7 @@ Platform publikasi konten dan blog modern untuk artikel wawasan logika, kode, da
 * **Plugin Strapi**:
   - `@strapi/plugin-color-picker`: Custom field pemilih warna hex visual untuk kategori artikel.
   - `@qkix/strapi-plugin-better-blocks` & `@qkix/better-blocks-react-renderer`: Blok konten rich text (tabel, sintaks koding, rumus KaTeX, diagram Mermaid, callout info/warning, video YouTube/Vimeo).
+  - **Custom VS Code Block (`vscode-code`)**: Blok kode khusus dengan antarmuka dan tema **VS Code Dark+**, Mac window controls, tab nama file dinamis, nomor baris, smart indentation, copy button, dan *real-time syntax highlighting* modular via `highlight.js`.
 * **Basis Data**: PostgreSQL 16 (Alpine).
 * **Runtime & Package Manager**:
   - **Backend (`backend/`)**: Wajib menggunakan **`pnpm`**.
@@ -37,6 +38,9 @@ Platform publikasi konten dan blog modern untuk artikel wawasan logika, kode, da
 ```text
 ├── backend/                  # Source code Strapi v5 (CMS Backend - Package Manager: pnpm)
 │   ├── config/               # Konfigurasi plugins, middlewares, dan database
+│   ├── src/admin/            # Customization Strapi Admin Panel
+│   │   ├── app.tsx           # Registrasi Custom Block VS Code & Slate AST Sync
+│   │   └── vite.config.ts    # Optimasi memory limit Vite admin bundler
 │   ├── src/api/              # Content-types (articles, categories, tags, authors)
 │   ├── src/middlewares/      # Custom middleware (rate-limit in-memory)
 │   ├── Dockerfile            # Multi-stage build Strapi dengan pnpm & Node Alpine
@@ -47,7 +51,7 @@ Platform publikasi konten dan blog modern untuk artikel wawasan logika, kode, da
 │   │   ├── feed.xml/         # RSS 2.0 XML Feed endpoint
 │   │   ├── sitemap.ts        # Dynamic Next.js Sitemap
 │   │   └── article/[slug]/opengraph-image.tsx # Dynamic OG Image (1200x630)
-│   ├── src/components/       # UI Components (DraftModeBanner, ArticleJsonLd, RichContentRenderer, dll)
+│   ├── src/components/       # UI Components (CodeBlock VS Code, RichContentRenderer, DraftModeBanner, dll)
 │   ├── src/lib/              # Client Strapi v5 dengan On-Demand Tagged Cache (3600s)
 │   ├── Dockerfile            # Multi-stage build Next.js Standalone dengan Bun
 │   └── package.json
@@ -69,13 +73,24 @@ Penulis dapat melihat tampilan draf artikel sebelum dipublikasikan ke publik:
 - Next.js akan mengaktifkan cookie `draftMode()`, mem-bypass cache, dan memanggil Strapi dengan parameter `status=draft`.
 - Muncul floating banner **`DraftModeBanner`** di bagian atas layar dengan tombol instan *"Keluar Preview"* (`/api/exit-preview`).
 
-### 3. SEO & Visibilitas Mesin Pencari (Google Ready)
+### 3. Custom VS Code Block dengan Real-Time Syntax Highlighting
+Blok koding bawaan ditingkatkan dengan tema dan interaktivitas identik dengan editor **Visual Studio Code**:
+- **Mac Window Controls**: 3 titik warna (merah, kuning, hijau) pada header blok.
+- **Active File Tab**: Penulis dapat menentukan nama berkas spesifik (misal: `server.ts`, `docker-compose.yml`, `main.py`).
+- **Selector 15+ Bahasa**: Mendukung TypeScript, JavaScript, Python, Bash, SQL, Go, Rust, Java, C++, PHP, HTML, CSS, JSON, YAML, dan Markdown.
+- **Line Numbers Gutter**: Kolom nomor baris yang otomatis bertambah sesuai panjang baris kode.
+- **Smart Indentation**: Menekan tombol <kbd>Tab</kbd> di area penulisan kode menyisipkan 2 spasi tanpa memindahkan fokus kursor.
+- **Syntax Highlighting Real-Time**: Pewarnaan token kode (keyword, string, comment, number, function) secara langsung di editor dan di frontend pembaca menggunakan modular `highlight.js/lib/core`.
+- **Persistent AST Synchronization**: Perubahan teks kode, bahasa, dan nama berkas langsung tersimpan ke Slate Abstract Syntax Tree (AST) sehingga Strapi otomatis mengaktifkan tombol **Save** dan **Publish**.
+- **One-Click Copy**: Tombol salin kode dengan indikator visual baik di CMS maupun di web publik.
+
+### 4. SEO & Visibilitas Mesin Pencari (Google Ready)
 - **Dynamic Sitemap (`/sitemap.xml`)**: Otomatis mengindeks beranda, seluruh artikel, kategori, tag, dan author dengan URL kanonikal berbasis `NEXT_PUBLIC_SITE_URL`.
 - **RSS 2.0 XML Feed (`/feed.xml`)**: Format RSS 2.0 lengkap untuk pembaca feed reader.
 - **Dynamic OpenGraph Image**: Menghasilkan gambar media sosial 1200x630px otomatis via `ImageResponse` dengan judul artikel, kategori, dan brand Logikanya.tech.
 - **JSON-LD Schema.org**: Data terstruktur `BlogPosting`, `BreadcrumbList`, dan `Person` di setiap artikel untuk Google Rich Snippets.
 
-### 4. Keamanan & Hardening Produksi
+### 5. Keamanan & Hardening Produksi
 - **HTTP Security Headers**: Dikonfigurasi di `next.config.ts` (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`).
 - **Strapi In-Memory Rate Limiting**: Membatasi request publik ke `/api/*` (120 req/menit per IP) untuk mencegah scraping masif dan serangan brute-force.
 

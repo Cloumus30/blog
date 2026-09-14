@@ -4,9 +4,9 @@
 | :--- | :--- |
 | **Arsitektur Utama** | Decoupled / Headless CMS |
 | **Runtime & Package Manager** | **pnpm** (Backend / Strapi) & **Bun 1.x** (Frontend / Next.js) |
-| **Backend Service** | Strapi v4/v5 |
-| **Frontend Framework** | Next.js (App Router, Server Components) / Astro |
-| **Database** | PostgreSQL 15+ |
+| **Backend Service** | Strapi v5 (TypeScript) |
+| **Frontend Framework** | Next.js 16 (App Router, Server Components, Turbopack) |
+| **Database** | PostgreSQL 16 / SQLite (Local Dev) |
 | **Asset / Media Storage** | Cloudinary / AWS S3 Compatible (Cloudflare R2 / Supabase Storage) |
 | **Target Lingkungan** | Docker Multi-Container di Server Pribadi (Private Server/Homelab) |
 | **Ingress & SSL** | Cloudflare Tunnel (Docker container yang sudah aktif di server) |
@@ -29,8 +29,8 @@ graph TB
         end
 
         subgraph "CMS Docker Compose Network"
-            FrontendContainer["Next.js / Astro Frontend (Port 3000)"]
-            StrapiContainer["Strapi CMS Engine & Admin (Port 1337)"]
+            FrontendContainer["Next.js 16 Frontend (Port 3000)"]
+            StrapiContainer["Strapi CMS v5 Engine & Admin (Port 1337)"]
             PostgresContainer[("PostgreSQL 16 DB (Port 5432)")]
             NamedVol[("Docker Named Volumes: postgres_data & strapi_uploads")]
         end
@@ -66,7 +66,20 @@ Menyimpan data postingan blog:
 * `title`: String (Required, Max 150)
 * `slug`: UID (Target field: `title`, Unique, Indexed)
 * `excerpt`: Text (Short description, Max 250)
-* `content`: Rich Block JSON (Struktur blok terstandar: teks, code snippets, list, callouts, media gambar lokal/eksternal URL, serta blok embed video YouTube/Vimeo)
+* `content`: Rich Block JSON (Struktur blok terstandar Slate & Better Blocks):
+  - **Standard Blocks**: `paragraph`, `heading` (h1-h6), `list` (ordered/unordered), `quote`.
+  - **Better Blocks**: `table`, `math` (KaTeX), `diagram` (Mermaid), `callout` (info/warning/danger), `video` / `media-embed` (YouTube/Vimeo), `button`.
+  - **Custom VS Code Block (`vscode-code`)**:
+    ```json
+    {
+      "type": "vscode-code",
+      "id": "vsc_xxx",
+      "code": "console.log('hello')",
+      "language": "typescript",
+      "filename": "server.ts",
+      "children": [{ "type": "text", "text": "" }]
+    }
+    ```
 * `cover_image`: Media Relation (Single image, Required)
 * `status`: Enumeration (`draft`, `published`, `archived`)
 * `published_at`: DateTime (Nullable)

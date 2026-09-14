@@ -44,9 +44,18 @@ Editor CMS menggunakan antarmuka **Rich Block Editor** modern yang fleksibel:
 * **Kutipan (Blockquote)**: Untuk kutipan ucapan narasumber atau referensi eksternal.
 
 ### 2.2 Blok Khusus Artikel Teknologi & Hobi
-* **Code Snippet Block**:
-  - Penulis dapat memilih bahasa pemrograman (misal: `JavaScript`, `TypeScript`, `Python`, `Go`, `Rust`, `Bash`, `HTML/CSS`, `SQL`, dll.).
-  - Di halaman pembaca, blok kode ini otomatis dilengkapi dengan **Syntax Highlighting** (pewarnaan kode tematik) dan tombol **"Copy Code"** satu klik.
+* **VS Code Style Code Block**:
+  - **Cara Menambahkan**:
+    - Ketik slash command `/vscode` pada baris baru, atau
+    - Klik tombol `+` di sisi kiri editor lalu pilih **VS Code Block**, atau
+    - Ketik shortcut ` ```vscode ` lalu tekan tombol <kbd>Spasi</kbd>.
+  - **Fitur Interaktif Penulisan**:
+    - **Active File Tab**: Penulis dapat memberi nama file spesifik (contoh: `app.tsx`, `docker-compose.yml`, `main.py`).
+    - **Language Selector Dropdown**: Pilihan 15+ bahasa pemrograman (TypeScript, JavaScript, Python, Bash, SQL, Go, Rust, Java, C++, PHP, HTML, CSS, JSON, YAML, Markdown).
+    - **Real-Time Syntax Highlighting**: Pewarnaan kode tematik VS Code Dark+ langsung aktif saat mengetik di admin panel.
+    - **Line Numbers Gutter**: Kolom nomor baris otomatis bertambah dinamis seiring baris kode bertambah.
+    - **Smart Indentation**: Menekan tombol <kbd>Tab</kbd> di area penulisan kode menyisipkan 2 spasi tanpa memindahkan fokus kursor.
+  - **Tampilan Pembaca (Frontend)**: Blok kode dirender dengan antarmuka bergaya jendela editor VS Code lengkap dengan 3 titik Mac (merah, kuning, hijau), nama berkas, nomor baris, badge bahasa, dan tombol **"Copy"** interaktif satu klik.
 * **Callout & Alert Box**:
   - Blok penekanan informasi penting dengan berbagai level warna:
     - 💡 **Info / Tip**: Catatan tambahan yang berguna bagi pembaca.

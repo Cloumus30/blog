@@ -21,6 +21,10 @@ Aplikasi web publik dan antarmuka pembaca untuk blog **Logikanya.tech**, dibangu
 - **Desain & Pembaca Modern**:
   - Tailwind CSS v4 dengan dukungan Dark & Light Mode penuh.
   - Palet Brand: Canvas `#F8F9FA`, Primary `#2C303A`, Accent `#D95D39`.
+  - **VS Code Style Code Block** ([`src/components/CodeBlock.tsx`](./src/components/CodeBlock.tsx)):
+    - Renderer kustom Better Blocks (`vscode-code`) via `@qkix/better-blocks-react-renderer`.
+    - Real-time syntax highlighting tematik VS Code Dark+ via modular `highlight.js`.
+    - Mac window dots, tab nama file aktif, kolom line numbers, dan tombol copy interaktif.
   - Auto Table of Contents (TOC) sticky di sidebar.
   - Reading Progress Bar atas.
   - Rute arsip dinamis: `/category/[slug]`, `/author/[slug]`, dan `/tag/[slug]`.

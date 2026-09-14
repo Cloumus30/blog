@@ -1,57 +1,72 @@
-# 🚀 Getting started with Strapi
+# 🚀 Logikanya.tech — Backend CMS (Strapi v5)
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
-
-> **Catatan Paket**: Backend Strapi ini dikelola secara resmi menggunakan **`pnpm`**.
-
-### `develop`
-
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
-
-```bash
-pnpm run develop
-```
-
-### `start`
-
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
-
-```bash
-pnpm run start
-```
-
-### `build`
-
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
-
-```bash
-pnpm run build
-```
-
-## ⚙️ Deployment
-
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
-
-```
-yarn strapi deploy
-```
-
-## 📚 Learn more
-
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
+Backend sistem publikasi konten dan Headless CMS untuk platform **Logikanya.tech**, dibangun menggunakan **Strapi v5 (TypeScript)** dan dikelola secara eksklusif menggunakan package manager **`pnpm`**.
 
 ---
 
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+## 📦 Standar Package Manager
+
+> [!IMPORTANT]
+> Backend ini **wajib** menggunakan **`pnpm`** (misal: `pnpm install`, `pnpm run build`, `pnpm run dev`, `pnpm run start`). Jangan gunakan `npm`, `yarn`, atau `bun` secara langsung di direktori ini.
+
+---
+
+## ⚡ Fitur Utama & Kustomisasi Backend
+
+### 1. Custom VS Code Block (`vscode-code`)
+Didaftarkan di [`src/admin/app.tsx`](./src/admin/app.tsx) melalui ekstensi API `@qkix/strapi-plugin-better-blocks/strapi-admin`:
+- **Antarmuka VS Code Dark+**: Header dengan Mac window controls (merah, kuning, hijau) dan tab berkas aktif yang dapat diedit langsung.
+- **Dukungan 15+ Bahasa**: TypeScript, JavaScript, Python, Bash/Shell, SQL, HTML, CSS, JSON, Go, Rust, Java, C++, PHP, YAML, dan Markdown.
+- **Line Numbers Gutter**: Nomor baris otomatis bertambah seiring penambahan baris kode.
+- **Smart Tab Indentation**: Tombol <kbd>Tab</kbd> menyisipkan 2 spasi tanpa kehilangan fokus kursor.
+- **Real-Time Syntax Highlighting**: Pewarnaan syntax langsung pada editor admin menggunakan arsitektur modular `highlight.js/lib/core` yang kebal terhadap *chunk loading race condition* pada Vite.
+- **Sinkronisasi Slate AST Persisten**: Setiap blok memiliki `id` unik stabil (`blockIdRef`) dan terhubung ke pelacak editor global (`window.__betterBlocksEditors`), sehingga perubahan nama berkas, bahasa, dan teks kode langsung memperbarui AST Slate dan mengaktifkan tombol **Save** / **Publish** secara otomatis.
+
+### 2. Optimasi Vite Bundler Admin Panel
+Dikonfigurasi di [`src/admin/vite.config.ts`](./src/admin/vite.config.ts) untuk menghemat alokasi memori RAM saat kompilasi admin panel Strapi:
+- `reportCompressedSize: false` (mencegah komputasi gzip 770+ chunk di memori RAM).
+- `sourcemap: false` untuk build produksi.
+- `maxParallelFileOps: 2` untuk mencegah kehabisan file descriptor / heap spike.
+- Skrip `build` di [`package.json`](./package.json) dikonfigurasi dengan `NODE_OPTIONS="--max-old-space-size=2560"`.
+
+### 3. Keamanan & Performa API
+- **In-Memory Rate Limiting** ([`src/middlewares/rate-limit.ts`](./src/middlewares/rate-limit.ts)): Membatasi 120 req/menit per IP untuk endpoint `/api/*`.
+- **Database Support**: PostgreSQL 16 untuk server produksi (Docker) dan SQLite (`.tmp/data.db`) untuk pengembangan lokal cepat.
+
+---
+
+## 🛠️ Perintah Eksekusi (CLI Commands)
+
+```bash
+# 1. Instalasi dependensi
+pnpm install
+
+# 2. Menjalankan development server dengan auto-reload (port 1337)
+pnpm run develop
+# atau alias:
+pnpm run dev
+
+# 3. Kompilasi build admin panel produksi
+pnpm run build
+
+# 4. Menjalankan server produksi
+pnpm run start
+```
+
+---
+
+## 📂 Struktur Direktori Backend
+
+```text
+├── config/               # Konfigurasi database, middlewares, dan plugins
+├── database/             # Database migrations
+├── src/
+│   ├── admin/            # Kustomisasi Strapi Admin Panel
+│   │   ├── app.tsx       # Registrasi Custom Block VS Code & Slate AST Sync
+│   │   └── vite.config.ts# Optimasi build Vite (RAM / Heap friendly)
+│   ├── api/              # Content-Types (articles, categories, tags, authors)
+│   ├── components/       # Reusable Strapi components
+│   └── middlewares/      # Custom middleware (rate-limiting)
+├── Dockerfile            # Multi-stage production container build dengan pnpm
+└── package.json
+```
