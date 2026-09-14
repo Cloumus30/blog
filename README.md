@@ -84,13 +84,20 @@ Blok koding bawaan ditingkatkan dengan tema dan interaktivitas identik dengan ed
 - **Persistent AST Synchronization**: Perubahan teks kode, bahasa, dan nama berkas langsung tersimpan ke Slate Abstract Syntax Tree (AST) sehingga Strapi otomatis mengaktifkan tombol **Save** dan **Publish**.
 - **One-Click Copy**: Tombol salin kode dengan indikator visual baik di CMS maupun di web publik.
 
-### 4. SEO & Visibilitas Mesin Pencari (Google Ready)
+### 4. Sticky Top Toolbar pada Editor Rich Text (Better Blocks)
+Toolbar formatting Better Blocks (pilihan font, heading level, ukuran teks, link, kode, alignment, bullet/numbered list, emoji, dll.) otomatis menempel di bagian atas layar (**Sticky Top**) saat penulis melakukan scroll ke bawah di area editor konten artikel yang panjang:
+- **Zero-Distraction Formatting**: Penulis tidak perlu scroll bolak-balik ke paling atas halaman untuk mengakses tombol pemformatan.
+- **Adaptive Theme Support**: Background toolbar mewarisi warna kontainer secara dinamis (`background-color: inherit`) sehingga tampil solid dan tanpa transparansi baik di Light Mode (`#ffffff`) maupun Dark Mode (`#212134`).
+- **Elevation & Natural Boundaries**: Dilengkapi bayangan elevasi halus (`box-shadow`) dan border pemisah bawah; toolbar berhenti menempel secara alami saat kursor/layar keluar dari batas bawah editor konten.
+- **Responsive & Modal Compatible**: Otomatis menyesuaikan posisi jika terdapat navigasi sticky Strapi dan tetap berfungsi optimal pada mode Fullscreen / Expanded View.
+
+### 5. SEO & Visibilitas Mesin Pencari (Google Ready)
 - **Dynamic Sitemap (`/sitemap.xml`)**: Otomatis mengindeks beranda, seluruh artikel, kategori, tag, dan author dengan URL kanonikal berbasis `NEXT_PUBLIC_SITE_URL`.
 - **RSS 2.0 XML Feed (`/feed.xml`)**: Format RSS 2.0 lengkap untuk pembaca feed reader.
 - **Dynamic OpenGraph Image**: Menghasilkan gambar media sosial 1200x630px otomatis via `ImageResponse` dengan judul artikel, kategori, dan brand Logikanya.tech.
 - **JSON-LD Schema.org**: Data terstruktur `BlogPosting`, `BreadcrumbList`, dan `Person` di setiap artikel untuk Google Rich Snippets.
 
-### 5. Keamanan & Hardening Produksi
+### 6. Keamanan & Hardening Produksi
 - **HTTP Security Headers**: Dikonfigurasi di `next.config.ts` (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`).
 - **Strapi In-Memory Rate Limiting**: Membatasi request publik ke `/api/*` (120 req/menit per IP) untuk mencegah scraping masif dan serangan brute-force.
 

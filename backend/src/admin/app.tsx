@@ -606,5 +606,61 @@ export default {
       renderElement: (props) => <VsCodeEditorElement {...props} />,
     });
   },
-  bootstrap(app: StrapiApp) {},
+  bootstrap(app: StrapiApp) {
+    if (typeof document !== 'undefined') {
+      const styleId = 'better-blocks-sticky-toolbar';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+          /* Un-trap position: sticky from Better Blocks container overflow */
+          div:has(> [role="toolbar"]:not([aria-label="Text formatting"])) {
+            overflow: visible !important;
+          }
+
+          /* Ensure Strapi main content wrapper does not trap sticky */
+          [data-strapi-main-content] {
+            overflow-x: clip !important;
+          }
+
+          /* Sticky formatting toolbar for Better Blocks Rich Text Editor */
+          div:has(> [role="toolbar"]:not([aria-label="Text formatting"])) > [role="toolbar"]:not([aria-label="Text formatting"]),
+          div[role="toolbar"]:not([aria-label="Text formatting"]):not([role="dialog"] [role="toolbar"]) {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: inherit !important;
+            border-top-left-radius: inherit !important;
+            border-top-right-radius: inherit !important;
+            border-bottom: 1px solid rgba(125, 125, 125, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+            transition: top 0.15s ease, box-shadow 0.15s ease;
+          }
+
+          /* Adjust top offset if Strapi renders a sticky top navigation header */
+          body:has([data-strapi-header-sticky="true"]) div:has(> [role="toolbar"]:not([aria-label="Text formatting"])) > [role="toolbar"]:not([aria-label="Text formatting"]) {
+            top: 5.6rem !important;
+          }
+
+          @media (max-width: 768px) {
+            body:has([data-strapi-header-sticky="true"]) div:has(> [role="toolbar"]:not([aria-label="Text formatting"])) > [role="toolbar"]:not([aria-label="Text formatting"]) {
+              top: 6.4rem !important;
+            }
+          }
+
+          /* Inside fullscreen / expanded modal dialog */
+          [role="dialog"] div:has(> [role="toolbar"]:not([aria-label="Text formatting"])) > [role="toolbar"]:not([aria-label="Text formatting"]),
+          [role="dialog"] div[role="toolbar"]:not([aria-label="Text formatting"]) {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            background-color: inherit !important;
+            border-bottom: 1px solid rgba(125, 125, 125, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+  },
 };

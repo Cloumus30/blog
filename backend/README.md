@@ -22,14 +22,22 @@ Didaftarkan di [`src/admin/app.tsx`](./src/admin/app.tsx) melalui ekstensi API `
 - **Real-Time Syntax Highlighting**: Pewarnaan syntax langsung pada editor admin menggunakan arsitektur modular `highlight.js/lib/core` yang kebal terhadap *chunk loading race condition* pada Vite.
 - **Sinkronisasi Slate AST Persisten**: Setiap blok memiliki `id` unik stabil (`blockIdRef`) dan terhubung ke pelacak editor global (`window.__betterBlocksEditors`), sehingga perubahan nama berkas, bahasa, dan teks kode langsung memperbarui AST Slate dan mengaktifkan tombol **Save** / **Publish** secara otomatis.
 
-### 2. Optimasi Vite Bundler Admin Panel
+### 2. Sticky Top Toolbar pada Editor Rich Text (Better Blocks)
+Dikonfigurasi di [`src/admin/app.tsx`](./src/admin/app.tsx) melalui hook `bootstrap(app: StrapiApp)` untuk menyuntikkan styling toolbar cerdas:
+- **Sticky Navigation**: Toolbar formatting (pilihan heading, font, ukuran, link, kode, alignment, list) otomatis menempel di bagian atas layar saat pengguna scroll ke bawah di area editor artikel yang panjang.
+- **Scroll Context Un-trapping**: Mengatasi batasan `overflow-y: auto` dan `overflow-x: hidden` bawaan plugin agar konteks sticky menempel langsung relatif terhadap scroll halaman (`[data-strapi-main-content]`).
+- **Dynamic Theme Inheritance**: Menggunakan `background-color: inherit` sehingga otomatis menyesuaikan warna latar belakang editor (Light Mode `#ffffff` dan Dark Mode `#212134`) secara solid tanpa tembus pandang.
+- **Elevation & Bound Isolation**: Dilengkapi border pemisah dan bayangan halus (`box-shadow`); toolbar berhenti menempel secara alami ketika kursor keluar dari batas bawah editor konten artikel.
+- **Support Modal Dialog**: Tetap berfungsi optimal dan menempel di `top: 0` pada mode Fullscreen / Expanded View editor.
+
+### 3. Optimasi Vite Bundler Admin Panel
 Dikonfigurasi di [`src/admin/vite.config.ts`](./src/admin/vite.config.ts) untuk menghemat alokasi memori RAM saat kompilasi admin panel Strapi:
 - `reportCompressedSize: false` (mencegah komputasi gzip 770+ chunk di memori RAM).
 - `sourcemap: false` untuk build produksi.
 - `maxParallelFileOps: 2` untuk mencegah kehabisan file descriptor / heap spike.
 - Skrip `build` di [`package.json`](./package.json) dikonfigurasi dengan `NODE_OPTIONS="--max-old-space-size=2560"`.
 
-### 3. Keamanan & Performa API
+### 4. Keamanan & Performa API
 - **In-Memory Rate Limiting** ([`src/middlewares/rate-limit.ts`](./src/middlewares/rate-limit.ts)): Membatasi 120 req/menit per IP untuk endpoint `/api/*`.
 - **Database Support**: PostgreSQL 16 untuk server produksi (Docker) dan SQLite (`.tmp/data.db`) untuk pengembangan lokal cepat.
 
