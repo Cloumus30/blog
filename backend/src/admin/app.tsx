@@ -41,14 +41,33 @@ if (!hljs.getLanguage('javascript')) {
   hljs.registerLanguage('markdown', markdown);
 }
 
-// Referensi editor Slate aktif dari Better Blocks
-let currentEditor: Editor | null = null;
+// Penyimpanan global instance Slate Editor dari Better Blocks (persisten antar-HMR)
+const activeEditors = new Set<Editor>();
+
+function getActiveEditors(): Set<Editor> {
+  if (typeof window !== 'undefined') {
+    const win = window as unknown as { __betterBlocksEditors?: Set<Editor> };
+    if (!win.__betterBlocksEditors) {
+      win.__betterBlocksEditors = activeEditors;
+    } else {
+      for (const ed of activeEditors) {
+        win.__betterBlocksEditors.add(ed);
+      }
+      for (const ed of win.__betterBlocksEditors) {
+        activeEditors.add(ed);
+      }
+    }
+    return win.__betterBlocksEditors;
+  }
+  return activeEditors;
+}
 
 interface VsCodeBlockElementProps {
   attributes: Record<string, unknown>;
   children: React.ReactNode;
   element: {
     type: string;
+    id?: string;
     code?: string;
     language?: string;
     filename?: string;
@@ -168,6 +187,11 @@ const VsCodeEditorElement: React.FC<VsCodeBlockElementProps> = ({
   children,
   element,
 }) => {
+  // ID unik stabil agar node dapat dilacak dan diupdate secara persisten di Slate AST
+  const blockIdRef = useRef<string>(
+    element.id || ('vsc_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36))
+  );
+
   const [code, setCode] = useState(element.code ?? '');
   const [language, setLanguage] = useState(element.language ?? 'typescript');
   const [filename, setFilename] = useState(element.filename ?? 'snippet.ts');
@@ -176,36 +200,58 @@ const VsCodeEditorElement: React.FC<VsCodeBlockElementProps> = ({
   const preRef = useRef<HTMLPreElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const updateNode = (fields: Record<string, unknown>) => {
+    const blockId = blockIdRef.current;
+    const editors = getActiveEditors();
+
+    let updated = false;
+    for (const editor of editors) {
+      try {
+        for (const [, path] of Editor.nodes(editor, {
+          at: [],
+          match: (n: any) => n.id === blockId || n === element,
+        })) {
+          Transforms.setNodes(editor, { id: blockId, ...fields }, { at: path });
+          Object.assign(element, { id: blockId, ...fields });
+          updated = true;
+          break;
+        }
+      } catch (err) {
+        console.warn('[BetterBlocks VSCode] Error updating Slate node:', err);
+      }
+      if (updated) break;
+    }
+
+    if (!updated) {
+      Object.assign(element, { id: blockId, ...fields });
+    }
+  };
+
+  // Pastikan ID tersimpan di element AST pada mount jika belum ada
+  useEffect(() => {
+    if (!element.id) {
+      updateNode({ id: blockIdRef.current });
+    }
+  }, []);
+
   // Sinkronisasi state lokal jika props element berubah dari luar
   useEffect(() => {
-    setCode(element.code ?? '');
+    if (element.code !== undefined && element.code !== code) {
+      setCode(element.code);
+    }
   }, [element.code]);
 
   useEffect(() => {
-    setLanguage(element.language ?? 'typescript');
+    if (element.language !== undefined && element.language !== language) {
+      setLanguage(element.language);
+    }
   }, [element.language]);
 
   useEffect(() => {
-    setFilename(element.filename ?? 'snippet.ts');
-  }, [element.filename]);
-
-  const updateNode = (fields: Record<string, unknown>) => {
-    Object.assign(element, fields);
-
-    if (currentEditor) {
-      try {
-        const [match] = Editor.nodes(currentEditor, {
-          match: (n) => n === element,
-          at: [],
-        });
-        if (match) {
-          Transforms.setNodes(currentEditor, fields, { at: match[1] });
-        }
-      } catch (err) {
-        console.warn('Unable to update Slate node AST', err);
-      }
+    if (element.filename !== undefined && element.filename !== filename) {
+      setFilename(element.filename);
     }
-  };
+  }, [element.filename]);
 
   // Real-time Syntax Highlighting dengan Highlight.js
   const highlightedHtml = useMemo(() => {
@@ -542,13 +588,15 @@ export default {
       icon: VsCodeMenuIcon,
       snippets: ['```vscode'],
       withEditor: (editor) => {
-        currentEditor = editor;
+        getActiveEditors().add(editor);
         return editor;
       },
       insert: (editor) => {
-        currentEditor = editor;
+        getActiveEditors().add(editor);
+        const blockId = 'vsc_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
         Transforms.insertNodes(editor, {
           type: 'vscode-code',
+          id: blockId,
           code: '',
           language: 'typescript',
           filename: 'snippet.ts',

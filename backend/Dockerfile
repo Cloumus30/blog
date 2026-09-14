@@ -22,7 +22,7 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 # Copy application source code and build
 COPY . .
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=2560"
 RUN pnpm run build
 
 # Stage 2: Production Runner
@@ -35,6 +35,9 @@ RUN apk add --no-cache vips-dev
 
 ENV NODE_ENV=production
 ENV PATH="/app/node_modules/.bin:$PATH"
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@12 --activate
 
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
@@ -49,4 +52,4 @@ COPY --from=builder /app/tsconfig.json ./
 
 EXPOSE 1337
 
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
