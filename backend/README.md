@@ -25,10 +25,10 @@ Didaftarkan di [`src/admin/app.tsx`](./src/admin/app.tsx) melalui ekstensi API `
 ### 2. Sticky Top Toolbar pada Editor Rich Text (Better Blocks)
 Dikonfigurasi di [`src/admin/app.tsx`](./src/admin/app.tsx) melalui hook `bootstrap(app: StrapiApp)` untuk menyuntikkan styling toolbar cerdas:
 - **Sticky Navigation**: Toolbar formatting (pilihan heading, font, ukuran, link, kode, alignment, list) otomatis menempel di bagian atas layar saat pengguna scroll ke bawah di area editor artikel yang panjang.
-- **Scroll Context Un-trapping**: Mengatasi batasan `overflow-y: auto` dan `overflow-x: hidden` bawaan plugin agar konteks sticky menempel langsung relatif terhadap scroll halaman (`[data-strapi-main-content]`).
+- **Non-Invasive Scroll Un-trapping**: Mengatasi batasan `overflow-y: auto` dan `overflow-x: hidden` bawaan plugin secara presisi pada kontainer Better Blocks (`div:has(> [role="toolbar"]):has([data-slate-editor="true"])`) tanpa memodifikasi container tata letak halaman Strapi (`[data-strapi-main-content]`), sehingga seluruh halaman tetap dapat di-scroll dengan lancar dan bebas dari scroll-lock.
 - **Dynamic Theme Inheritance**: Menggunakan `background-color: inherit` sehingga otomatis menyesuaikan warna latar belakang editor (Light Mode `#ffffff` dan Dark Mode `#212134`) secara solid tanpa tembus pandang.
 - **Elevation & Bound Isolation**: Dilengkapi border pemisah dan bayangan halus (`box-shadow`); toolbar berhenti menempel secara alami ketika kursor keluar dari batas bawah editor konten artikel.
-- **Support Modal Dialog**: Tetap berfungsi optimal dan menempel di `top: 0` pada mode Fullscreen / Expanded View editor.
+- **Support Modal Dialog & HMR**: Tetap berfungsi optimal dan menempel di `top: 0` pada mode Fullscreen / Expanded View editor, serta mendukung pembaruan gaya seketika via Hot Module Replacement (HMR) tanpa perlu restart browser.
 
 ### 3. Optimasi Vite Bundler Admin Panel
 Dikonfigurasi di [`src/admin/vite.config.ts`](./src/admin/vite.config.ts) untuk menghemat alokasi memori RAM saat kompilasi admin panel Strapi:

@@ -71,6 +71,13 @@ Editor CMS menggunakan antarmuka **Rich Block Editor** modern yang fleksibel:
   - **Tampilan Pembaca**: Di halaman publik web blog, video otomatis dirender secara responsif (aspek rasio 16:9) dengan fitur *lazy load* (menggunakan *facade player* / `youtube-nocookie`) agar tidak memperlambat *initial page load*.
   - **Embed Media Tambahan (Opsional)**: Mendukung embed interaktif teknis seperti CodePen, CodeSandbox, atau Tweet/X.
 
+### 2.3 Sticky Top Formatting Toolbar (Navigasi Pemformatan Cepat)
+Saat menulis artikel panjang atau menyunting blok teks yang berada jauh di bawah, penulis tidak perlu lagi scroll bolak-balik ke paling atas hanya untuk mengubah gaya teks:
+* **Otomatis Menempel (Sticky Top)**: Toolbar navigasi pemformatan (tombol font, heading, link, list, code, dll.) akan otomatis melayang dan menempel (*sticky*) di bagian atas layar saat layar di-scroll ke bawah di area editor artikel.
+* **Batas Alami Blok Konten**: Toolbar hanya melayang selama layar berada di dalam area editor artikel (*Content/Body*), dan akan kembali normal saat melewati batas bawah editor.
+* **Ramah Mode Gelap/Terang**: Latar belakang toolbar otomatis menyesuaikan tema CMS (Light Mode putih solid, Dark Mode abu-abu gelap solid) sehingga tidak bertumpuk transparan dengan teks artikel.
+* **Dukungan Tampilan Layar Penuh (Expanded Mode)**: Toolbar tetap menempel di bagian atas jendela saat editor dibuka dalam mode modal fullscreen (tombol expand).
+
 ---
 
 ## 3. Standar Kelengkapan Metadata & SEO

@@ -89,6 +89,7 @@ Toolbar formatting Better Blocks (pilihan font, heading level, ukuran teks, link
 - **Zero-Distraction Formatting**: Penulis tidak perlu scroll bolak-balik ke paling atas halaman untuk mengakses tombol pemformatan.
 - **Adaptive Theme Support**: Background toolbar mewarisi warna kontainer secara dinamis (`background-color: inherit`) sehingga tampil solid dan tanpa transparansi baik di Light Mode (`#ffffff`) maupun Dark Mode (`#212134`).
 - **Elevation & Natural Boundaries**: Dilengkapi bayangan elevasi halus (`box-shadow`) dan border pemisah bawah; toolbar berhenti menempel secara alami saat kursor/layar keluar dari batas bawah editor konten.
+- **Scroll Isolation Preserved**: Selector diisolasi secara presisi pada kontainer editor (`div:has(> [role="toolbar"]):has([data-slate-editor="true"])`) sehingga tidak mengganggu scroll container alami Strapi (`OverflowingItem` / `[data-strapi-main-content]`), menjamin navigasi halaman tetap mulus dan bebas scroll lock.
 - **Responsive & Modal Compatible**: Otomatis menyesuaikan posisi jika terdapat navigasi sticky Strapi dan tetap berfungsi optimal pada mode Fullscreen / Expanded View.
 
 ### 5. SEO & Visibilitas Mesin Pencari (Google Ready)
